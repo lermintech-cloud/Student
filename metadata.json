@@ -1,0 +1,6 @@
+{
+  "name": "โรงเรียนบ้านไร่ - ระบบบันทึกคะแนนและเชื่อมต่อ Google Apps Script",
+  "description": "ระบบบันทึกคะแนนนักเรียนสไตล์ Chibi น่ารัก พร้อมการวิเคราะห์ผลการเรียนด้วย AI, ส่งออกขึ้น GitHub และเชื่อมต่อฐานข้อมูล Google Sheets ผ่าน Google Apps Script",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

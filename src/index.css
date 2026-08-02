@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Kodchasan', 'Quicksand', sans-serif;
+    background-color: #f9f9ff;
+    color: #151c27;
+  }
+}
+
+.font-thai {
+  font-family: 'Mali', 'Kodchasan', sans-serif;
+}
+
+.font-body {
+  font-family: 'Kodchasan', 'Quicksand', sans-serif;
+}
+
+.font-display {
+  font-family: 'Mali', 'Plus Jakarta Sans', cursive, sans-serif;
+}
+
+/* Cute Chibi Shadows & Hover effects */
+.chibi-shadow {
+  box-shadow: 0px 8px 24px rgba(48, 99, 133, 0.08);
+}
+
+.chibi-shadow-lg {
+  box-shadow: 0px 12px 32px rgba(48, 99, 133, 0.12);
+}
+
+.chibi-button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chibi-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 20px rgba(48, 99, 133, 0.15);
+}
+
+.chibi-button:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+/* Soft Pastel scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c1c7ce;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #71787e;
+}
