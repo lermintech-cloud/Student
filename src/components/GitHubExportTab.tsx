@@ -222,7 +222,7 @@ npm run dev
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {gitCommands.map((item, index) => (
             <div
-              key={index}
+              key={item.title}
               className="p-4 rounded-2xl bg-[#f0f3ff] border border-[#dce2f3] flex flex-col justify-between"
             >
               <div>

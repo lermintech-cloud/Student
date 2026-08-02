@@ -139,7 +139,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   </h4>
                   <ul className="space-y-2 text-xs">
                     {(result.strengths || []).map((str, i) => (
-                      <li key={i} className="flex items-start gap-2">
+                      <li key={`str-${i}-${str.substring(0, 10)}`} className="flex items-start gap-2">
                         <span className="text-[#2a6a45] font-bold">✨</span>
                         <span>{str}</span>
                       </li>
@@ -154,7 +154,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   </h4>
                   <ul className="space-y-2 text-xs">
                     {(result.improvementAreas || []).map((imp, i) => (
-                      <li key={i} className="flex items-start gap-2">
+                      <li key={`imp-${i}-${imp.substring(0, 10)}`} className="flex items-start gap-2">
                         <span className="text-[#81515a] font-bold">💡</span>
                         <span>{imp}</span>
                       </li>

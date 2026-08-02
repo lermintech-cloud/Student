@@ -861,8 +861,8 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                 className="flex-1 sm:w-36 appearance-none bg-[#f0f3ff] border border-[#dce2f3] py-2.5 px-4 rounded-full text-sm font-medium text-[#151c27] cursor-pointer focus:outline-none focus:border-[#306385]"
               >
                 <option value="">ทุกชั้นเรียน</option>
-                {allClassLevels.map(cls => (
-                  <option key={cls} value={cls}>
+                {allClassLevels.map((cls, index) => (
+                  <option key={`cls-${index}-${cls}`} value={cls}>
                     {cls}
                   </option>
                 ))}
@@ -874,8 +874,8 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                 className="flex-1 sm:w-36 appearance-none bg-[#f0f3ff] border border-[#dce2f3] py-2.5 px-4 rounded-full text-sm font-medium text-[#151c27] cursor-pointer focus:outline-none focus:border-[#306385]"
               >
                 <option value="">ทุกห้อง</option>
-                {allRooms.map(rm => (
-                  <option key={rm} value={rm}>
+                {allRooms.map((rm, index) => (
+                  <option key={`rm-${index}-${rm}`} value={rm}>
                     {rm}
                   </option>
                 ))}
@@ -1331,7 +1331,7 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                     </thead>
                     <tbody className="divide-y divide-[#f0f3ff]">
                       {parsedStudents.map((stu, i) => (
-                        <tr key={i} className="hover:bg-[#f9f9ff]">
+                        <tr key={`parsed-${stu.code}-${i}`} className="hover:bg-[#f9f9ff]">
                           <td className="py-2 px-3 text-[#71787e] font-semibold">{i + 1}</td>
                           <td className="py-2 px-3 font-bold text-[#306385]">{stu.code}</td>
                           <td className="py-2 px-3 font-bold text-[#151c27]">
@@ -1490,8 +1490,8 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                   className="px-2 py-1 bg-[#f0f3ff] rounded-lg border border-[#dce2f3] font-bold"
                 >
                   <option value="">ทุกชั้นต้นทาง</option>
-                  {allClassLevels.map(cls => (
-                    <option key={cls} value={cls}>
+                  {allClassLevels.map((cls, index) => (
+                    <option key={`transfer-cls-${index}-${cls}`} value={cls}>
                       {cls}
                     </option>
                   ))}
@@ -1502,8 +1502,8 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                   className="px-2 py-1 bg-[#f0f3ff] rounded-lg border border-[#dce2f3] font-bold"
                 >
                   <option value="">ทุกห้องต้นทาง</option>
-                  {allRooms.map(rm => (
-                    <option key={rm} value={rm}>
+                  {allRooms.map((rm, index) => (
+                    <option key={`transfer-rm-${index}-${rm}`} value={rm}>
                       {rm}
                     </option>
                   ))}

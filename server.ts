@@ -221,9 +221,18 @@ async function startServer() {
     try {
       if (action === 'pull') {
         // Pull from GAS
-        const response = await fetch(targetUrl);
-        const result = await response.json();
-        if (result && (result.students || result.grades)) {
+        const response = await fetch(targetUrl, { redirect: 'follow' });
+        const rawText = await response.text();
+        let result: any = {};
+        try {
+          result = JSON.parse(rawText);
+        } catch (e) {
+          return res.status(500).json({
+            success: false,
+            error: `GAS returned HTTP ${response.status} (Non-JSON response / HTML login or 404 page). Please verify Web App URL and deployment access permissions.`
+          });
+        }
+        if (result && (result.students || result.grades || result.status === 'success')) {
           if (Array.isArray(result.students) && result.students.length > 0) {
             dbState.students = result.students;
           }

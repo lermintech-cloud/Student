@@ -457,9 +457,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-[#41474d] font-semibold">เลือกมาสคอตน่ารัก:</span>
-                {PRESET_MASCOTS.map((item, idx) => (
+                {PRESET_MASCOTS.map(item => (
                   <button
-                    key={idx}
+                    key={item.name}
                     type="button"
                     onClick={() => setFormSettings({ ...formSettings, mascotUrl: item.url })}
                     className="px-3 py-1 rounded-full bg-[#f0f3ff] hover:bg-[#e2e8f8] text-xs font-bold text-[#306385] border border-[#dce2f3] transition-colors"
@@ -496,9 +496,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-[#41474d] font-semibold">เลือกรูปครูน่ารัก:</span>
-                {PRESET_TEACHER_AVATARS.map((item, idx) => (
+                {PRESET_TEACHER_AVATARS.map(item => (
                   <button
-                    key={idx}
+                    key={item.name}
                     type="button"
                     onClick={() => setFormSettings({ ...formSettings, teacherAvatarUrl: item.url })}
                     className="px-3 py-1 rounded-full bg-[#f0f3ff] hover:bg-[#e2e8f8] text-xs font-bold text-[#306385] border border-[#dce2f3] transition-colors"
@@ -690,9 +690,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   <div>
                     <label className="block text-xs font-bold text-[#306385] mb-1">เลือกสีธีมประจำวิชา</label>
                     <div className="grid grid-cols-2 gap-2">
-                      {PRESET_COLORS.map((col, idx) => (
+                      {PRESET_COLORS.map(col => (
                         <button
-                          key={idx}
+                          key={col.label}
                           type="button"
                           onClick={() => setEditingSubject({ ...editingSubject, color: col.value })}
                           className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-between ${col.value} ${
@@ -752,9 +752,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               { grade: '1.5', letter: 'D+', percent: '55% - 59%', label: 'พอใช้ (Poor)', color: 'bg-[#fff9e6] text-[#996300] border-[#f4b6c1]' },
               { grade: '1', letter: 'D', percent: '50% - 54%', label: 'ผ่านเกณฑ์ขั้นต่ำ (Pass)', color: 'bg-[#ffd9df] text-[#81515a] border-[#81515a]' },
               { grade: '0', letter: 'F / ร', percent: '0% - 49%', label: 'ไม่ผ่านเกณฑ์ (Fail)', color: 'bg-[#ffd9df] text-[#ba1a1a] border-[#ba1a1a]' }
-            ].map((item, idx) => (
+            ].map(item => (
               <div
-                key={idx}
+                key={item.grade}
                 className="flex items-center justify-between p-4 rounded-2xl border bg-[#f9f9ff] border-[#dce2f3]"
               >
                 <div className="flex items-center gap-4">
