@@ -33,6 +33,7 @@ import { AppScriptSyncTab } from './components/AppScriptSyncTab.js';
 import { GitHubExportTab } from './components/GitHubExportTab.js';
 import { NewAssignmentModal } from './components/NewAssignmentModal.js';
 import { AIAssistantModal } from './components/AIAssistantModal.js';
+import { SettingsTab } from './components/SettingsTab.js';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
@@ -211,6 +212,55 @@ export default function App() {
     if (db.gasConfig) setGasConfig(db.gasConfig);
   };
 
+  const handleSaveSubject = (sub: Partial<Subject>) => {
+    let updatedList: Subject[];
+    if (sub.id) {
+      updatedList = subjects.map(s => (s.id === sub.id ? { ...s, ...sub } : s));
+    } else {
+      const newSub: Subject = {
+        id: 'sub-' + Date.now(),
+        code: sub.code || 'SUB-101',
+        name: sub.name || 'รายวิชาใหม่',
+        classLevel: sub.classLevel || 'ป.1/1',
+        defaultMaxScore: sub.defaultMaxScore || 10,
+        icon: sub.icon || 'menu_book',
+        color: sub.color || 'bg-[#a7d8ff] text-[#001e2f] border-[#306385]'
+      };
+      updatedList = [...subjects, newSub];
+    }
+    setSubjects(updatedList);
+    persistChanges(undefined, updatedList);
+  };
+
+  const handleDeleteSubject = (id: string) => {
+    const updatedSubjects = subjects.filter(s => s.id !== id);
+    setSubjects(updatedSubjects);
+    persistChanges(undefined, updatedSubjects);
+  };
+
+  const handleUpdateSettings = (newSettings: Partial<SchoolSettings>) => {
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
+    persistChanges(undefined, undefined, undefined, undefined, updated);
+  };
+
+  const handleClearAllData = () => {
+    if (
+      confirm(
+        'คำเตือน: คุณต้องการล้างข้อมูลนักเรียน งาน และคะแนนทั้งหมด เพื่อเตรียมรับห้องเรียนใหม่หรือปีการศึกษาใหม่ใช่หรือไม่?\n\n(ชื่อโรงเรียน และรายวิชาที่สอนจะยังอยู่ครบเหมือนเดิม)'
+      )
+    ) {
+      const emptyStudents: Student[] = [];
+      const emptyAssignments: Assignment[] = [];
+      const emptyGrades: GradeEntry[] = [];
+      setStudents(emptyStudents);
+      setAssignments(emptyAssignments);
+      setGrades(emptyGrades);
+      persistChanges(emptyStudents, undefined, emptyAssignments, emptyGrades);
+      alert('ล้างข้อมูลนักเรียนและคะแนนเรียบร้อยแล้ว เตรียมพร้อมสำหรับห้องเรียนใหม่');
+    }
+  };
+
   const handleResetData = async () => {
     if (confirm('คุณต้องการรีเซ็ตข้อมูลกลับไปใช้ข้อมูลตัวอย่างเริ่มต้นหรือไม่?')) {
       const data = await resetDatabase();
@@ -347,6 +397,29 @@ export default function App() {
               </div>
             </div>
           </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <SettingsTab
+            settings={settings}
+            onUpdateSettings={handleUpdateSettings}
+            subjects={subjects}
+            onSaveSubject={handleSaveSubject}
+            onDeleteSubject={handleDeleteSubject}
+            gasConfig={gasConfig}
+            setActiveTab={setActiveTab}
+            onResetData={handleResetData}
+            onClearAllData={handleClearAllData}
+            fullDb={{
+              students,
+              subjects,
+              assignments,
+              grades,
+              settings,
+              gasConfig
+            }}
+            onRestoreDb={handleDataPulledFromGas}
+          />
         )}
       </main>
 

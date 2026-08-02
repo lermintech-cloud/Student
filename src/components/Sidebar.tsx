@@ -27,7 +27,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'summary', label: 'สรุปผล', icon: 'grid_on' },
     { id: 'appScriptSync', label: 'เชื่อมต่อ Apps Script', icon: 'cloud_sync', badge: 'Sheets' },
     { id: 'githubExport', label: 'นำขึ้น GitHub & ส่งออก', icon: 'terminal', badge: 'Git' },
-    { id: 'aiAssistant', label: 'วิเคราะห์ AI น้องชิบิ', icon: 'auto_awesome', badge: 'AI' }
+    { id: 'aiAssistant', label: 'วิเคราะห์ AI น้องชิบิ', icon: 'auto_awesome', badge: 'AI' },
+    { id: 'settings', label: 'การตั้งค่าระบบ', icon: 'settings_suggest', badge: 'ตั้งค่า' }
   ];
 
   const handleNavClick = (tab: ActiveTab) => {
@@ -106,6 +107,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         ? 'bg-[#ebf7f0] text-[#0a522f]'
                         : item.badge === 'AI'
                         ? 'bg-[#fdbec9] text-[#330f19]'
+                        : item.badge === 'ตั้งค่า'
+                        ? 'bg-[#fff0cb] text-[#4d3a00]'
                         : 'bg-[#e2e8f8] text-[#41474d]'
                     }`}
                   >

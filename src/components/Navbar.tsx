@@ -55,6 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {activeTab === 'appScriptSync' && 'เชื่อมต่อฐานข้อมูล Google Apps Script (Google Sheets)'}
           {activeTab === 'githubExport' && 'เตรียมนำขึ้น GitHub & ส่งออกข้อมูล'}
           {activeTab === 'aiAssistant' && 'น้องชิบิ AI วิเคราะห์ผลการเรียน'}
+          {activeTab === 'settings' && 'การตั้งค่าระบบและจัดการข้อมูลทั้งหมด'}
         </span>
       </div>
 
@@ -96,8 +97,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span>GitHub</span>
         </button>
 
-        {/* Profile Avatar */}
-        <div className="flex items-center gap-2 pl-2 border-l border-[#dce2f3]">
+        {/* Profile Avatar (Click to go to Settings) */}
+        <button
+          onClick={() => setActiveTab('settings')}
+          className="flex items-center gap-2 pl-2 border-l border-[#dce2f3] hover:opacity-80 transition-opacity text-left cursor-pointer"
+          title="คลิกเพื่อเปิดเมนูการตั้งค่าระบบและข้อมูลคุณครู"
+        >
           <img
             src={settings.teacherAvatarUrl}
             alt={settings.teacherName}
@@ -107,9 +112,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="text-xs font-bold text-[#151c27] leading-tight">
               {settings.teacherName}
             </div>
-            <div className="text-[10px] text-[#41474d]">ครูประจำชั้น ป.1/1</div>
+            <div className="text-[10px] text-[#306385] font-semibold">ตั้งค่าระบบ ⚙️</div>
           </div>
-        </div>
+        </button>
       </div>
     </header>
   );

@@ -80,4 +80,5 @@ export type ActiveTab =
   | 'summary' 
   | 'appScriptSync' 
   | 'githubExport' 
-  | 'aiAssistant';
+  | 'aiAssistant'
+  | 'settings';
