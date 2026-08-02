@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import { Student, Assignment, GradeEntry, AppScriptConfig } from '../types.js';
+import React, { useState, useMemo } from 'react';
+import { Student, Assignment, GradeEntry, AppScriptConfig, Subject } from '../types.js';
 import { exportToCSV } from '../services/api.js';
+import { StudentAvatar } from './StudentAvatar.js';
 
 interface StudentsTabProps {
   students: Student[];
+  subjects?: Subject[];
   assignments: Assignment[];
   grades: GradeEntry[];
   onSaveStudent: (student: Partial<Student>) => void;
   onDeleteStudent: (id: string) => void;
   onBatchAddStudents?: (students: Partial<Student>[]) => void;
+  onBatchUpdateStudents?: (students: Student[], message?: string) => void;
   gasConfig?: AppScriptConfig;
   onOpenGasSync?: () => void;
 }
@@ -158,10 +161,7 @@ function parseStudentLines(
       code = (existingCount + idxNumber).toString().padStart(3, '0');
     }
 
-    const avatar =
-      gender === 'female'
-        ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuAL5t_MWvFniyYyAgPM7lL7RtqInuWSeTJZVqgChQ5YaPMsKWxH2Az8gcdATP51fZgMNvD4Tzx-ynYWFP0D2u4HSCqiUn_dAgRmSFusmq56qf39j7fYZHvuYVzWZG0f-LmMx4UYLky8Wm6NGFfLRej_sOHb-oaN0_gCMJbJjQOUTU6P6YbUuM7H6cGeHF7CEONozlIeC-kTjGEW1dLI2G6jVMVSOzpV69HLyP4DOO-sXxrgByy-ZpvH'
-        : 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1zrbR5LJ132IT7GHNZ6XJHu81UNgH7_kYAfB8291kvt62_NfAJMZX9jL4aSEHBLZE3OYbqLu5PHHnf6cRJAEt7VvOTyMZqTQA_t0OIHWhxqfph3kgrpx2s9bpfa4Z6Ja1DZ5MgL0D6YpBzqLXyt621PJJrWg9pybZQvwd8Ft6ofEg3lHK8hQYsb8jNSOk9SuIqQlyHy5GueIu1Wkpt2GEzXQjuJ5V7X-gtUBBFG0ShbcUz55CxW5B';
+    const avatar = '';
 
     results.push({
       code,
@@ -184,17 +184,21 @@ function parseStudentLines(
 
 export const StudentsTab: React.FC<StudentsTabProps> = ({
   students,
+  subjects = [],
   assignments,
   grades,
   onSaveStudent,
   onDeleteStudent,
   onBatchAddStudents,
+  onBatchUpdateStudents,
   gasConfig,
   onOpenGasSync
 }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'all' | 'classrooms' | 'subjects'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('');
   const [roomFilter, setRoomFilter] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Partial<Student> | null>(null);
 
@@ -205,6 +209,212 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
   const [defaultRoom, setDefaultRoom] = useState('ห้อง 101');
   const [parsedStudents, setParsedStudents] = useState<Partial<Student>[]>([]);
   const [batchSuccessMsg, setBatchSuccessMsg] = useState('');
+
+  // Batch Promote/Transfer states
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferSourceClass, setTransferSourceClass] = useState('');
+  const [transferSourceRoom, setTransferSourceRoom] = useState('');
+  const [transferTargetClass, setTransferTargetClass] = useState('ป.2/1');
+  const [transferTargetRoom, setTransferTargetRoom] = useState('ห้อง 201');
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [transferNote, setTransferNote] = useState('เลื่อนชั้นเรียน/ย้ายห้องประจำปีการศึกษา');
+  const [transferSuccessMsg, setTransferSuccessMsg] = useState('');
+
+  const allClassLevels = useMemo(() => {
+    const set = new Set<string>();
+    ['ป.1/1', 'ป.1/2', 'ป.2/1', 'ป.2/2', 'ป.3/1', 'ป.3/2', 'ป.4/1', 'ป.5/1', 'ป.6/1'].forEach(c => set.add(c));
+    students.forEach(s => {
+      if (s.classLevel) set.add(s.classLevel);
+    });
+    return Array.from(set).sort();
+  }, [students]);
+
+  const allRooms = useMemo(() => {
+    const set = new Set<string>();
+    ['ห้อง 101', 'ห้อง 102', 'ห้อง 201', 'ห้อง 202', 'ห้อง 301', 'ห้อง 302'].forEach(r => set.add(r));
+    students.forEach(s => {
+      if (s.room) set.add(s.room);
+    });
+    return Array.from(set).sort();
+  }, [students]);
+
+  const classroomGroups = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        classLevel: string;
+        room: string;
+        students: Student[];
+        maleCount: number;
+        femaleCount: number;
+        avgScore: number;
+      }
+    >();
+
+    students.forEach(s => {
+      const classLevel = s.classLevel || 'ไม่ระบุชั้นเรียน';
+      const room = s.room || 'ไม่ระบุห้อง';
+      const key = `${classLevel}||${room}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          classLevel,
+          room,
+          students: [],
+          maleCount: 0,
+          femaleCount: 0,
+          avgScore: 0,
+        });
+      }
+      const item = map.get(key)!;
+      item.students.push(s);
+      if (s.gender === 'male') item.maleCount++;
+      else item.femaleCount++;
+    });
+
+    map.forEach(item => {
+      let totalPts = 0;
+      let count = 0;
+      item.students.forEach(s => {
+        const sGrades = grades.filter(g => g.studentId === s.id && g.score !== undefined);
+        sGrades.forEach(g => {
+          const asgn = assignments.find(a => a.id === g.assignmentId);
+          if (asgn && asgn.maxScore > 0) {
+            totalPts += (g.score! / asgn.maxScore) * 100;
+            count++;
+          }
+        });
+      });
+      item.avgScore = count > 0 ? Math.round(totalPts / count) : 0;
+    });
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.classLevel.localeCompare(b.classLevel, 'th') || a.room.localeCompare(b.room, 'th')
+    );
+  }, [students, grades, assignments]);
+
+  const subjectGroups = useMemo(() => {
+    const defaultList: Subject[] = [
+      {
+        id: 'sub-th1',
+        code: 'TH101',
+        name: 'ภาษาไทยพื้นฐาน',
+        category: 'core',
+        gradeLevel: 'ป.1/1',
+        credits: 1.5,
+        color: '#ff6b6b'
+      },
+      {
+        id: 'sub-math1',
+        code: 'MATH101',
+        name: 'คณิตศาสตร์พื้นฐาน',
+        category: 'core',
+        gradeLevel: 'ป.1/1',
+        credits: 2.0,
+        color: '#4ecdc4'
+      },
+      {
+        id: 'sub-sci1',
+        code: 'SCI101',
+        name: 'วิทยาศาสตร์และเทคโนโลยี',
+        category: 'core',
+        gradeLevel: 'ป.1/1',
+        credits: 1.5,
+        color: '#45b7d1'
+      },
+      {
+        id: 'sub-eng1',
+        code: 'ENG101',
+        name: 'ภาษาอังกฤษเพื่อการสื่อสาร',
+        category: 'core',
+        gradeLevel: 'ป.1/1',
+        credits: 1.5,
+        color: '#9b59b6'
+      }
+    ];
+
+    const list = (subjects && subjects.length > 0) ? subjects : defaultList;
+
+    return list.map(sub => {
+      const matchingStudents = students.filter(
+        s => !sub.gradeLevel || sub.gradeLevel === 'ทุกระดับชั้น' || s.classLevel.includes(sub.gradeLevel) || sub.gradeLevel.includes(s.classLevel)
+      );
+      const subAssignments = assignments.filter(a => a.subjectId === sub.id || a.title.includes(sub.name) || (a as any).subject?.includes(sub.name));
+
+      let totalPts = 0;
+      let count = 0;
+      subAssignments.forEach(asgn => {
+        grades.filter(g => g.assignmentId === asgn.id && g.score !== undefined).forEach(g => {
+          if (asgn.maxScore > 0) {
+            totalPts += (g.score! / asgn.maxScore) * 100;
+            count++;
+          }
+        });
+      });
+      const avgScore = count > 0 ? Math.round(totalPts / count) : 0;
+
+      return {
+        ...sub,
+        studentCount: matchingStudents.length,
+        assignmentCount: subAssignments.length,
+        avgScore,
+        students: matchingStudents
+      };
+    });
+  }, [subjects, students, assignments, grades]);
+
+  const transferCandidateStudents = useMemo(() => {
+    return students.filter(s => {
+      const matchClass = !transferSourceClass || s.classLevel === transferSourceClass;
+      const matchRoom = !transferSourceRoom || s.room === transferSourceRoom;
+      return matchClass && matchRoom;
+    });
+  }, [students, transferSourceClass, transferSourceRoom]);
+
+  const handleOpenTransferModal = (initialClass = '', initialRoom = '') => {
+    setTransferSourceClass(initialClass);
+    setTransferSourceRoom(initialRoom);
+    setSelectedStudentIds([]);
+    setTransferSuccessMsg('');
+    setIsTransferModalOpen(true);
+  };
+
+  const handleSelectAllForTransfer = (checked: boolean) => {
+    if (checked) {
+      setSelectedStudentIds(transferCandidateStudents.map(s => s.id));
+    } else {
+      setSelectedStudentIds([]);
+    }
+  };
+
+  const handleToggleSelectStudent = (id: string) => {
+    setSelectedStudentIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleConfirmBatchTransfer = () => {
+    if (selectedStudentIds.length === 0) return;
+    const targets = students.filter(s => selectedStudentIds.includes(s.id));
+    const updated = targets.map(s => ({
+      ...s,
+      classLevel: transferTargetClass || s.classLevel,
+      room: transferTargetRoom || s.room,
+      note: s.note ? `${s.note} (${transferNote})` : transferNote
+    }));
+
+    if (onBatchUpdateStudents) {
+      onBatchUpdateStudents(
+        updated,
+        `✅ เลื่อนชั้น/ย้ายห้องนักเรียนจำนวน ${updated.length} คน ไปยัง ${transferTargetClass} (${transferTargetRoom}) เรียบร้อยแล้วค่ะ`
+      );
+    }
+    setTransferSuccessMsg(`ย้าย/เลื่อนชั้นนักเรียน ${updated.length} คน เรียบร้อยแล้วค่ะ`);
+    setTimeout(() => {
+      setIsTransferModalOpen(false);
+      setSelectedStudentIds([]);
+      setTransferSuccessMsg('');
+    }, 1500);
+  };
 
   const handleTextChange = (text: string) => {
     setBatchText(text);
@@ -276,7 +486,11 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
       s.nickname.toLowerCase().includes(term);
     const matchesClass = !classFilter || s.classLevel === classFilter;
     const matchesRoom = !roomFilter || s.room === roomFilter;
-    return matchesSearch && matchesClass && matchesRoom;
+    const matchesSubject =
+      !subjectFilter ||
+      s.classLevel.includes(subjectFilter) ||
+      subjectFilter === 'ทุกระดับชั้น';
+    return matchesSearch && matchesClass && matchesRoom && matchesSubject;
   });
 
   const handleOpenNewModal = () => {
@@ -290,7 +504,7 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
       gender: 'male',
       classLevel: 'ป.1/1',
       room: 'ห้อง 101',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1zrbR5LJ132IT7GHNZ6XJHu81UNgH7_kYAfB8291kvt62_NfAJMZX9jL4aSEHBLZE3OYbqLu5PHHnf6cRJAEt7VvOTyMZqTQA_t0OIHWhxqfph3kgrpx2s9bpfa4Z6Ja1DZ5MgL0D6YpBzqLXyt621PJJrWg9pybZQvwd8Ft6ofEg3lHK8hQYsb8jNSOk9SuIqQlyHy5GueIu1Wkpt2GEzXQjuJ5V7X-gtUBBFG0ShbcUz55CxW5B',
+      avatar: '',
       status: 'active',
       note: ''
     });
@@ -401,45 +615,301 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
         )}
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="bg-[#ffffff] p-5 rounded-3xl chibi-shadow border-t-4 border-[#fdbec9] flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-80">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#71787e]">
-            search
-          </span>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            placeholder="ค้นหาด้วยชื่อ รหัส หรือชื่อเล่น..."
-            className="w-full pl-11 pr-4 py-2.5 bg-[#f0f3ff] rounded-full border border-[#dce2f3] focus:border-[#306385] focus:outline-none focus:bg-white text-sm font-medium transition-all"
-          />
+      {/* Sub-Tab Navigation for Complete Management (All / Classrooms / Subjects) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-[#dce2f3] shadow-xs">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('all')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-extrabold transition-all ${
+              activeSubTab === 'all'
+                ? 'bg-[#306385] text-white shadow-sm'
+                : 'bg-[#f0f3ff] text-[#41474d] hover:bg-[#e4ebff]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">group</span>
+            <span>รายชื่อทั้งหมด (รายคน)</span>
+            <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full font-bold">
+              {students.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('classrooms')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-extrabold transition-all ${
+              activeSubTab === 'classrooms'
+                ? 'bg-[#306385] text-white shadow-sm'
+                : 'bg-[#f0f3ff] text-[#41474d] hover:bg-[#e4ebff]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">meeting_room</span>
+            <span>ระบบจัดการรายห้องเรียน ({classroomGroups.length} ห้อง)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('subjects')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-extrabold transition-all ${
+              activeSubTab === 'subjects'
+                ? 'bg-[#306385] text-white shadow-sm'
+                : 'bg-[#f0f3ff] text-[#41474d] hover:bg-[#e4ebff]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">menu_book</span>
+            <span>ระบบจัดการรายวิชา ({subjectGroups.length} วิชา)</span>
+          </button>
         </div>
 
-        <div className="flex w-full md:w-auto gap-3">
-          <select
-            value={classFilter}
-            onChange={e => setClassFilter(e.target.value)}
-            className="flex-1 md:w-40 appearance-none bg-[#f0f3ff] border border-[#dce2f3] py-2.5 px-4 rounded-full text-sm font-medium text-[#151c27] cursor-pointer focus:outline-none focus:border-[#306385]"
+        {activeSubTab === 'classrooms' && (
+          <button
+            type="button"
+            onClick={() => handleOpenTransferModal('', '')}
+            className="flex items-center gap-1.5 bg-[#ebf7f0] text-[#0a522f] border border-[#93d5a7] hover:bg-[#d8f0e3] px-4 py-2 rounded-xl text-xs font-bold shadow-xs transition-colors"
           >
-            <option value="">ทุกชั้นเรียน</option>
-            <option value="ป.1/1">ป.1/1</option>
-            <option value="ป.1/2">ป.1/2</option>
-            <option value="ป.2/1">ป.2/1</option>
-          </select>
-
-          <select
-            value={roomFilter}
-            onChange={e => setRoomFilter(e.target.value)}
-            className="flex-1 md:w-36 appearance-none bg-[#f0f3ff] border border-[#dce2f3] py-2.5 px-4 rounded-full text-sm font-medium text-[#151c27] cursor-pointer focus:outline-none focus:border-[#306385]"
-          >
-            <option value="">ทุกห้อง</option>
-            <option value="ห้อง 101">ห้อง 101</option>
-            <option value="ห้อง 102">ห้อง 102</option>
-            <option value="ห้อง 201">ห้อง 201</option>
-          </select>
-        </div>
+            <span className="material-symbols-outlined text-base">move_up</span>
+            <span>+ เลื่อนชั้น / ย้ายห้องประจำปี</span>
+          </button>
+        )}
       </div>
+
+      {/* Classroom Management View */}
+      {activeSubTab === 'classrooms' && (
+        <div className="space-y-4 animate-fadeIn">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {classroomGroups.map(group => (
+              <div
+                key={`${group.classLevel}-${group.room}`}
+                className="bg-white rounded-3xl p-6 border-2 border-[#e2e8f8] hover:border-[#a7d8ff] transition-all chibi-shadow flex flex-col justify-between space-y-4"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[#306385] bg-[#c9e6ff] p-2.5 rounded-2xl">
+                        school
+                      </span>
+                      <div>
+                        <h3 className="font-display font-extrabold text-lg text-[#151c27]">
+                          {group.classLevel}
+                        </h3>
+                        <p className="text-xs font-bold text-[#71787e]">{group.room}</p>
+                      </div>
+                    </div>
+                    <span className="bg-[#f0f3ff] text-[#306385] px-3 py-1 rounded-full text-xs font-extrabold">
+                      {group.students.length} คน
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-[#f0f3ff] text-center">
+                    <div className="bg-[#f9f9ff] p-2 rounded-xl">
+                      <div className="text-[10px] text-[#71787e] font-bold">👦 ชาย</div>
+                      <div className="text-sm font-extrabold text-[#306385]">
+                        {group.maleCount}
+                      </div>
+                    </div>
+                    <div className="bg-[#f9f9ff] p-2 rounded-xl">
+                      <div className="text-[10px] text-[#71787e] font-bold">👧 หญิง</div>
+                      <div className="text-sm font-extrabold text-[#9b59b6]">
+                        {group.femaleCount}
+                      </div>
+                    </div>
+                    <div className="bg-[#f9f9ff] p-2 rounded-xl">
+                      <div className="text-[10px] text-[#71787e] font-bold">📈 คะแนนเฉลี่ย</div>
+                      <div className="text-sm font-extrabold text-[#0a522f]">
+                        {group.avgScore}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-1.5 overflow-hidden">
+                    {group.students.slice(0, 5).map(s => (
+                      <StudentAvatar
+                        key={s.id}
+                        student={s}
+                        size="sm"
+                        className="border-2 border-white shadow-xs"
+                      />
+                    ))}
+                    {group.students.length > 5 && (
+                      <span className="text-xs font-extrabold text-[#71787e] bg-[#f0f3ff] px-2 py-1 rounded-full">
+                        +{group.students.length - 5}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-3 border-t border-[#f0f3ff]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClassFilter(group.classLevel);
+                      setRoomFilter(group.room);
+                      setSubjectFilter('');
+                      setActiveSubTab('all');
+                    }}
+                    className="flex-1 bg-[#f0f3ff] hover:bg-[#c9e6ff] text-[#306385] text-xs font-bold py-2 px-3 rounded-xl transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-sm">visibility</span>
+                    <span>ดูรายชื่อในห้อง</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenTransferModal(group.classLevel, group.room)}
+                    className="bg-[#ebf7f0] hover:bg-[#d8f0e3] text-[#0a522f] text-xs font-bold py-2 px-3 rounded-xl transition-colors flex items-center justify-center gap-1"
+                    title="เลื่อนชั้นเรียนหรือย้ายห้องนักเรียนกลุ่มนี้"
+                  >
+                    <span className="material-symbols-outlined text-sm">move_up</span>
+                    <span>เลื่อนชั้น/ย้ายห้อง</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Subject Management View */}
+      {activeSubTab === 'subjects' && (
+        <div className="space-y-4 animate-fadeIn">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {subjectGroups.map(sub => (
+              <div
+                key={sub.id}
+                className="bg-white rounded-3xl p-6 border-2 border-[#e2e8f8] hover:border-[#a7d8ff] transition-all chibi-shadow flex flex-col justify-between space-y-4"
+                style={{ borderTopColor: sub.color || '#306385', borderTopWidth: '4px' }}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-[#f0f3ff] text-[#306385]">
+                        {sub.code}
+                      </span>
+                      <h3 className="font-display font-extrabold text-lg text-[#151c27] mt-1.5">
+                        {sub.name}
+                      </h3>
+                      <p className="text-xs font-bold text-[#71787e] mt-0.5">
+                        ระดับชั้น: {sub.gradeLevel || 'ทุกระดับชั้น'} | {sub.credits} หน่วยกิต
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-[#f0f3ff] text-center">
+                    <div className="bg-[#f9f9ff] p-2 rounded-xl">
+                      <div className="text-[10px] text-[#71787e] font-bold">👥 นักเรียน</div>
+                      <div className="text-sm font-extrabold text-[#306385]">
+                        {sub.studentCount} คน
+                      </div>
+                    </div>
+                    <div className="bg-[#f9f9ff] p-2 rounded-xl">
+                      <div className="text-[10px] text-[#71787e] font-bold">📝 ชิ้นงาน/ทดสอบ</div>
+                      <div className="text-sm font-extrabold text-[#9b59b6]">
+                        {sub.assignmentCount} รายการ
+                      </div>
+                    </div>
+                    <div className="bg-[#f9f9ff] p-2 rounded-xl">
+                      <div className="text-[10px] text-[#71787e] font-bold">📊 คะแนนเฉลี่ย</div>
+                      <div className="text-sm font-extrabold text-[#0a522f]">
+                        {sub.avgScore}%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#f0f3ff]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubjectFilter(sub.gradeLevel || 'ทุกระดับชั้น');
+                      setClassFilter('');
+                      setRoomFilter('');
+                      setActiveSubTab('all');
+                    }}
+                    className="w-full bg-[#f0f3ff] hover:bg-[#c9e6ff] text-[#306385] text-xs font-bold py-2 px-3 rounded-xl transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-sm">groups</span>
+                    <span>ดูรายชื่อนักเรียนที่เรียนวิชานี้</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Students (Individual List Table) */}
+      {activeSubTab === 'all' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Search & Filter Bar */}
+          <div className="bg-[#ffffff] p-5 rounded-3xl chibi-shadow border-t-4 border-[#fdbec9] flex flex-col lg:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full lg:w-72">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#71787e]">
+                search
+              </span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="ค้นหาด้วยชื่อ รหัส หรือชื่อเล่น..."
+                className="w-full pl-11 pr-4 py-2.5 bg-[#f0f3ff] rounded-full border border-[#dce2f3] focus:border-[#306385] focus:outline-none focus:bg-white text-sm font-medium transition-all"
+              />
+            </div>
+
+            <div className="flex flex-wrap w-full lg:w-auto gap-3">
+              <select
+                value={classFilter}
+                onChange={e => setClassFilter(e.target.value)}
+                className="flex-1 sm:w-36 appearance-none bg-[#f0f3ff] border border-[#dce2f3] py-2.5 px-4 rounded-full text-sm font-medium text-[#151c27] cursor-pointer focus:outline-none focus:border-[#306385]"
+              >
+                <option value="">ทุกชั้นเรียน</option>
+                {allClassLevels.map(cls => (
+                  <option key={cls} value={cls}>
+                    {cls}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={roomFilter}
+                onChange={e => setRoomFilter(e.target.value)}
+                className="flex-1 sm:w-36 appearance-none bg-[#f0f3ff] border border-[#dce2f3] py-2.5 px-4 rounded-full text-sm font-medium text-[#151c27] cursor-pointer focus:outline-none focus:border-[#306385]"
+              >
+                <option value="">ทุกห้อง</option>
+                {allRooms.map(rm => (
+                  <option key={rm} value={rm}>
+                    {rm}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={subjectFilter}
+                onChange={e => setSubjectFilter(e.target.value)}
+                className="flex-1 sm:w-44 appearance-none bg-[#f0f3ff] border border-[#dce2f3] py-2.5 px-4 rounded-full text-sm font-medium text-[#151c27] cursor-pointer focus:outline-none focus:border-[#306385]"
+              >
+                <option value="">ทุกวิชา</option>
+                {subjectGroups.map(sub => (
+                  <option key={sub.id} value={sub.gradeLevel || 'ทุกระดับชั้น'}>
+                    {sub.code}: {sub.name}
+                  </option>
+                ))}
+              </select>
+
+              {(searchTerm || classFilter || roomFilter || subjectFilter) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setClassFilter('');
+                    setRoomFilter('');
+                    setSubjectFilter('');
+                  }}
+                  className="px-4 py-2 bg-[#f0f3ff] hover:bg-red-50 text-[#71787e] hover:text-red-500 rounded-full text-xs font-bold transition-colors"
+                >
+                  ล้างตัวกรอง
+                </button>
+              )}
+            </div>
+          </div>
 
       {/* Student List Table */}
       <div className="bg-[#ffffff] rounded-3xl chibi-shadow overflow-hidden border border-[#e2e8f8]">
@@ -468,11 +938,7 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                   >
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3.5">
-                        <img
-                          src={stu.avatar}
-                          alt={stu.nickname}
-                          className="w-10 h-10 rounded-full border-2 border-[#c9e6ff] object-cover"
-                        />
+                        <StudentAvatar student={stu} size="md" />
                         <div>
                           <div className="font-bold text-[#151c27] group-hover:text-[#306385] transition-colors">
                             {stu.title}{stu.firstName} {stu.lastName}
@@ -547,6 +1013,8 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
           </table>
         </div>
       </div>
+        </div>
+      )}
 
       {/* Add / Edit Student Modal */}
       {isModalOpen && editingStudent && (
@@ -565,6 +1033,18 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
             </div>
 
             <form onSubmit={handleSave} className="space-y-4 text-sm font-medium">
+              <div className="flex items-center gap-4 p-3 bg-[#f0f3ff] rounded-2xl border border-[#dce2f3]">
+                <StudentAvatar student={editingStudent} size="lg" />
+                <div>
+                  <div className="text-sm font-extrabold text-[#306385]">
+                    ไอค่อนประจำตัวนักเรียน ({editingStudent.gender === 'female' || editingStudent.title === 'ด.ญ.' || editingStudent.title === 'นางสาว' ? 'นักเรียนหญิง' : 'นักเรียนชาย'})
+                  </div>
+                  <div className="text-xs text-[#71787e]">
+                    ไอค่อนพรีเมี่ยมแบบเวกเตอร์ โหลดทันที ไม่ใช้เน็ต
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#41474d] mb-1">คำนำหน้า</label>
@@ -911,6 +1391,196 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                 <span className="material-symbols-outlined text-sm">check_circle</span>
                 <span>
                   ยืนยันนำเข้านักเรียนทั้งหมด ({parsedStudents.length} คน)
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Transfer/Promotion Modal */}
+      {isTransferModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#151c27]/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-[#ffffff] rounded-3xl chibi-shadow-lg w-full max-w-3xl p-6 border-t-4 border-[#306385] max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="font-display text-xl font-extrabold text-[#306385] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#306385]">move_up</span>
+                  <span>ระบบเลื่อนชั้นเรียน / ย้ายห้องประจำปีการศึกษา</span>
+                </h3>
+                <p className="text-xs font-bold text-[#71787e]">
+                  เลือกนักเรียนที่ต้องการเลื่อนระดับชั้น หรือย้ายไปห้องเรียนใหม่พร้อมกันทั้งกลุ่ม
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTransferModalOpen(false)}
+                className="p-1 rounded-full hover:bg-[#f0f3ff] text-[#41474d]"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Target Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-2xl bg-[#f0f3ff] border border-[#dce2f3] mb-4">
+              <div>
+                <label className="block text-xs font-bold text-[#41474d] mb-1">
+                  เลื่อนไปยังชั้นเรียนใหม่
+                </label>
+                <select
+                  value={transferTargetClass}
+                  onChange={e => setTransferTargetClass(e.target.value)}
+                  className="w-full px-3 py-2 bg-white rounded-xl border border-[#dce2f3] font-extrabold text-sm text-[#151c27] focus:outline-none focus:border-[#306385]"
+                >
+                  <option value="ป.1/1">ป.1/1</option>
+                  <option value="ป.1/2">ป.1/2</option>
+                  <option value="ป.2/1">ป.2/1</option>
+                  <option value="ป.2/2">ป.2/2</option>
+                  <option value="ป.3/1">ป.3/1</option>
+                  <option value="ป.3/2">ป.3/2</option>
+                  <option value="ป.4/1">ป.4/1</option>
+                  <option value="ป.5/1">ป.5/1</option>
+                  <option value="ป.6/1">ป.6/1</option>
+                  <option value="ม.1/1">ม.1/1</option>
+                  <option value="จบการศึกษา">จบการศึกษา</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#41474d] mb-1">
+                  ย้ายไปยังห้องเรียนใหม่
+                </label>
+                <select
+                  value={transferTargetRoom}
+                  onChange={e => setTransferTargetRoom(e.target.value)}
+                  className="w-full px-3 py-2 bg-white rounded-xl border border-[#dce2f3] font-extrabold text-sm text-[#151c27] focus:outline-none focus:border-[#306385]"
+                >
+                  <option value="ห้อง 101">ห้อง 101</option>
+                  <option value="ห้อง 102">ห้อง 102</option>
+                  <option value="ห้อง 201">ห้อง 201</option>
+                  <option value="ห้อง 202">ห้อง 202</option>
+                  <option value="ห้อง 301">ห้อง 301</option>
+                  <option value="ห้อง 302">ห้อง 302</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Select Candidates */}
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={
+                    transferCandidateStudents.length > 0 &&
+                    selectedStudentIds.length === transferCandidateStudents.length
+                  }
+                  onChange={e => handleSelectAllForTransfer(e.target.checked)}
+                  className="w-4 h-4 rounded-md accent-[#306385]"
+                />
+                <span className="text-xs font-extrabold text-[#151c27]">
+                  เลือกนักเรียนทั้งหมดในรายการ ({selectedStudentIds.length} /{' '}
+                  {transferCandidateStudents.length} คน)
+                </span>
+              </label>
+
+              <div className="flex gap-2 text-xs">
+                <select
+                  value={transferSourceClass}
+                  onChange={e => setTransferSourceClass(e.target.value)}
+                  className="px-2 py-1 bg-[#f0f3ff] rounded-lg border border-[#dce2f3] font-bold"
+                >
+                  <option value="">ทุกชั้นต้นทาง</option>
+                  {allClassLevels.map(cls => (
+                    <option key={cls} value={cls}>
+                      {cls}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={transferSourceRoom}
+                  onChange={e => setTransferSourceRoom(e.target.value)}
+                  className="px-2 py-1 bg-[#f0f3ff] rounded-lg border border-[#dce2f3] font-bold"
+                >
+                  <option value="">ทุกห้องต้นทาง</option>
+                  {allRooms.map(rm => (
+                    <option key={rm} value={rm}>
+                      {rm}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Candidate list table */}
+            <div className="flex-1 overflow-y-auto border border-[#dce2f3] rounded-2xl p-2 mb-4 bg-[#f9f9ff]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {transferCandidateStudents.map(s => {
+                  const isSelected = selectedStudentIds.includes(s.id);
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => handleToggleSelectStudent(s.id)}
+                      className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-[#c9e6ff]/40 border-[#306385] shadow-xs'
+                          : 'bg-white border-[#e2e8f8] hover:border-[#a7d8ff]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className="w-4 h-4 rounded accent-[#306385]"
+                        />
+                        <StudentAvatar student={s} size="sm" />
+                        <div>
+                          <div className="text-xs font-extrabold text-[#151c27]">
+                            {s.title}{s.firstName} {s.lastName} ({s.nickname})
+                          </div>
+                          <div className="text-[10px] text-[#71787e]">
+                            รหัส: {s.code} | {s.classLevel} ({s.room})
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {transferCandidateStudents.length === 0 && (
+                <div className="py-8 text-center text-xs font-bold text-[#71787e]">
+                  ไม่มีนักเรียนในระดับชั้นหรือห้องเรียนต้นทางที่เลือก
+                </div>
+              )}
+            </div>
+
+            {transferSuccessMsg && (
+              <div className="p-3 mb-3 rounded-xl bg-[#ebf7f0] border border-[#93d5a7] text-[#0a522f] text-xs font-bold text-center animate-bounce">
+                {transferSuccessMsg}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-[#f0f3ff]">
+              <button
+                type="button"
+                onClick={() => setIsTransferModalOpen(false)}
+                className="px-5 py-2 rounded-full bg-[#f0f3ff] text-[#41474d] font-bold text-xs chibi-button"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                disabled={selectedStudentIds.length === 0}
+                onClick={handleConfirmBatchTransfer}
+                className={`px-6 py-2.5 rounded-full font-bold text-xs shadow-sm chibi-button flex items-center gap-1.5 ${
+                  selectedStudentIds.length === 0
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#306385] hover:bg-[#234b65] text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                <span>
+                  ยืนยันย้าย / เลื่อนชั้นเรียน ({selectedStudentIds.length} คน)
                 </span>
               </button>
             </div>

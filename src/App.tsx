@@ -168,7 +168,7 @@ export default function App() {
         gender: stu.gender || 'male',
         classLevel: stu.classLevel || 'ป.1/1',
         room: stu.room || 'ห้อง 101',
-        avatar: stu.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1zrbR5LJ132IT7GHNZ6XJHu81UNgH7_kYAfB8291kvt62_NfAJMZX9jL4aSEHBLZE3OYbqLu5PHHnf6cRJAEt7VvOTyMZqTQA_t0OIHWhxqfph3kgrpx2s9bpfa4Z6Ja1DZ5MgL0D6YpBzqLXyt621PJJrWg9pybZQvwd8Ft6ofEg3lHK8hQYsb8jNSOk9SuIqQlyHy5GueIu1Wkpt2GEzXQjuJ5V7X-gtUBBFG0ShbcUz55CxW5B',
+        avatar: stu.avatar || '',
         status: stu.status || 'active',
         note: stu.note || '',
         createdAt: new Date().toISOString().slice(0, 10)
@@ -206,7 +206,7 @@ export default function App() {
   };
 
   const handleBatchAddStudents = (newStudentsList: Partial<Student>[]) => {
-    const defaultAvatar = 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1zrbR5LJ132IT7GHNZ6XJHu81UNgH7_kYAfB8291kvt62_NfAJMZX9jL4aSEHBLZE3OYbqLu5PHHnf6cRJAEt7VvOTyMZqTQA_t0OIHWhxqfph3kgrpx2s9bpfa4Z6Ja1DZ5MgL0D6YpBzqLXyt621PJJrWg9pybZQvwd8Ft6ofEg3lHK8hQYsb8jNSOk9SuIqQlyHy5GueIu1Wkpt2GEzXQjuJ5V7X-gtUBBFG0ShbcUz55CxW5B';
+    const defaultAvatar = '';
     const currentCount = students.length;
     const createdList: Student[] = newStudentsList.map((stu, idx) => ({
       ...stu,
@@ -237,6 +237,23 @@ export default function App() {
       'success'
     );
   };
+
+  const handleBatchUpdateStudents = (updatedStudentsList: Student[], message?: string) => {
+    const map = new Map(updatedStudentsList.map(s => [s.id, s]));
+    const newList = students.map(s => (map.has(s.id) ? map.get(s.id)! : s));
+    setStudents(newList);
+    persistChanges(
+      newList,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      message || `✅ อัปเดตข้อมูลนักเรียน ${updatedStudentsList.length} คน เรียบร้อยแล้วค่ะ`,
+      'success'
+    );
+  };
+
 
   const handleSaveAssignment = (assign: Partial<Assignment>) => {
     let updatedList: Assignment[];
@@ -518,11 +535,13 @@ export default function App() {
         {activeTab === 'students' && (
           <StudentsTab
             students={students}
+            subjects={subjects}
             assignments={assignments}
             grades={grades}
             onSaveStudent={handleSaveStudent}
             onDeleteStudent={handleDeleteStudent}
             onBatchAddStudents={handleBatchAddStudents}
+            onBatchUpdateStudents={handleBatchUpdateStudents}
             gasConfig={gasConfig}
             onOpenGasSync={() => setActiveTab('appScriptSync')}
           />

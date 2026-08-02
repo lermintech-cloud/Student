@@ -64,7 +64,7 @@ export const initialStudents: Student[] = [
     gender: 'male',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1zrbR5LJ132IT7GHNZ6XJHu81UNgH7_kYAfB8291kvt62_NfAJMZX9jL4aSEHBLZE3OYbqLu5PHHnf6cRJAEt7VvOTyMZqTQA_t0OIHWhxqfph3kgrpx2s9bpfa4Z6Ja1DZ5MgL0D6YpBzqLXyt621PJJrWg9pybZQvwd8Ft6ofEg3lHK8hQYsb8jNSOk9SuIqQlyHy5GueIu1Wkpt2GEzXQjuJ5V7X-gtUBBFG0ShbcUz55CxW5B',
+    avatar: '',
     status: 'active',
     note: 'หัวหน้าห้อง เก่งคณิตศาสตร์',
     createdAt: '2025-05-15'
@@ -79,7 +79,7 @@ export const initialStudents: Student[] = [
     gender: 'female',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAkSqD236twd6X8UpXEQ6X5tP5QZPE96FrbUuQu4VOHGN8E0WEwDibXlSB57nM1IApmvri1JNDHdjBmAZ9O5jhv9ttBgyV_TuZCFeJqV42vM95gE8dwbQfs1Jd8hh3RbANRKrt6JgCR2nQ4UILgBh38poQiTrmgvd8zOLilrHW9ZKknAHOLaenumTWgOD172UFqgqTXF85mTqgW3F1VEf7ud0OIwzcy-d3OE4tKWutqo9NXePIYbL5g',
+    avatar: '',
     status: 'active',
     note: 'มีความคิดสร้างสรรค์สูง',
     createdAt: '2025-05-15'
@@ -94,7 +94,7 @@ export const initialStudents: Student[] = [
     gender: 'male',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCaKNtM7Ss_waLgni8Vbt1-9iDA1btKdtTZxp2IS4bL49dhVTzOBr1NQuStHIjHdqvnkOLF0KSKIgxC1Ht65ZOIOqzQ9ETPRMt-V3hN_mAbowGvvOsnocVfLtIAOX76WKYh0Gvs7UEsp73KzVQCqM7CCnnXi3R2D3r2wFXSxj3WVHwEEGQlJjwJobNCi18safHawvCzu7fAa6dKwF_a7o5QSrwaJsTn8xShZPuIsY-r55SpKHP251qa',
+    avatar: '',
     status: 'active',
     note: 'คะแนนเต็มทุกวิชา',
     createdAt: '2025-05-15'
@@ -109,7 +109,7 @@ export const initialStudents: Student[] = [
     gender: 'male',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRM2iMXzB_CqV-yjhaNSVxrepuhyteyJMmqdo3MNNMzZGx1iMJ76zEavuSaiO7GWKO4SIKsUk4r-OULp6COYfGbUgI4xEAYWsRPGj6kV6DEFC0NCG0M7lFrpKJtAZn8jQQ24TBmuP2PXVeBIJOGPuGbb3MXclabxvM_07FuUZ2fOq0Q5N4-Wgsz2wu4TrzhNiG5xZeVUmi6omiTm3exvV0aOdIQwPGOtzNlHRAl6acYOstbLuZGovr',
+    avatar: '',
     status: 'active',
     note: 'ตั้งใจเรียน ส่งงานตรงเวลาเสมอ',
     createdAt: '2025-05-15'
@@ -124,7 +124,7 @@ export const initialStudents: Student[] = [
     gender: 'female',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCBnzCHssGlt0ocH3jwf4G2GBG9jlVV9hn19Yb49wFjs8OiqDXNno_OtBGeMvJGt67pF0xMIVgeQnSoS72HOtjTFyNNqbV5G4PkLBTfQLLSUDx7Bht5mDdj2jfolmheN2dpSg5wO0sd_SZnocec0xIiEERnmr0b_fi5CHPBFL5fzRnVgsQMeP_lMMMywmlxkl9VADfM-UA5hKvtMb9rImv90onvfv68Qr6ml0XyoDS3ZXMIXSyw9N8E',
+    avatar: '',
     status: 'active',
     note: 'ชอบช่วยเหลือเพื่อน',
     createdAt: '2025-05-15'
@@ -139,7 +139,7 @@ export const initialStudents: Student[] = [
     gender: 'male',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB1z022o1aJu536i3dYLsZfF8U8UKbLo0Teebyu3cDjLD9xZZrU_tGleHckEE11ZNWuqL1HhAxA0zKR0Pfck_M0swfE60TUIMivSyjb-9K0Y3zVw6VyNIKs0Vn82hawoNzdqNHf5KvhcjmR3sZM0T2iDXmcjWSoTufXedKw6m5AzBD2o_9ZX-Qybm1EO3TyZGBPudcSB3Al9-wDbDH5TgVMRYV2PsfygkZ2F58lID8FUHDZ5SUjQnqp',
+    avatar: '',
     status: 'active',
     note: 'ขาดสอบย่อยครั้งที่ 1',
     createdAt: '2025-05-15'
@@ -154,7 +154,7 @@ export const initialStudents: Student[] = [
     gender: 'female',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAz0oXX52ByJ0J7Ouy0FaNmnRE04u0aRclNyJKhkoQuxL4CaXP9wcDY3788xL9tgu_RGH2Ru1jMhHHa5CA1aiprjuzGshaITYXbLCeyma1nhRWEL559MtrfwKD2K9PU9tHVLzBpxRyPvZKQ3Ga-QJBFIUBGVtOo8GpsguDksYWwvo7tiv_vA15VhGiuDZy-SFRf2uSy-CkSWdLY2TWSa_ZIuKSQ60-rEzDD0DMi2LyHV6-NSsvRoydm',
+    avatar: '',
     status: 'active',
     note: 'ลายมือสวย เป็นระเบียบ',
     createdAt: '2025-05-15'
@@ -169,7 +169,7 @@ export const initialStudents: Student[] = [
     gender: 'male',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuClTfnQ8x0kWe3Lzcmw2wAWkThjXR5JfAVDwEw9npSBuXjuK7T16bSGeLHqLVj21xv996gnpRHRciepSL53S1X0Zo9y9uycjz81gM1UqBwsXeRE_MTgYYZ1BxNZDPgMgf7t9MA3qNZsbasPkSLt08zelR_IfCHFOdfT3E2H05-t99pPX9tVBkTp_ybwI1ZBChQ_3TvK4cCx26P7fL-Wk3ljTjstwafauKKG7OxckS_aKn3J6Y7A9Pmf',
+    avatar: '',
     status: 'absent',
     note: 'ค้างโครงงานและต้องเสริมการอ่าน',
     createdAt: '2025-05-15'
@@ -184,7 +184,7 @@ export const initialStudents: Student[] = [
     gender: 'female',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCBnzCHssGlt0ocH3jwf4G2GBG9jlVV9hn19Yb49wFjs8OiqDXNno_OtBGeMvJGt67pF0xMIVgeQnSoS72HOtjTFyNNqbV5G4PkLBTfQLLSUDx7Bht5mDdj2jfolmheN2dpSg5wO0sd_SZnocec0xIiEERnmr0b_fi5CHPBFL5fzRnVgsQMeP_lMMMywmlxkl9VADfM-UA5hKvtMb9rImv90onvfv68Qr6ml0XyoDS3ZXMIXSyw9N8E',
+    avatar: '',
     status: 'active',
     note: 'มีความกระตือรือร้นสูง',
     createdAt: '2025-05-15'
@@ -199,7 +199,7 @@ export const initialStudents: Student[] = [
     gender: 'male',
     classLevel: 'ป.1/1',
     room: 'ห้อง 101',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRM2iMXzB_CqV-yjhaNSVxrepuhyteyJMmqdo3MNNMzZGx1iMJ76zEavuSaiO7GWKO4SIKsUk4r-OULp6COYfGbUgI4xEAYWsRPGj6kV6DEFC0NCG0M7lFrpKJtAZn8jQQ24TBmuP2PXVeBIJOGPuGbb3MXclabxvM_07FuUZ2fOq0Q5N4-Wgsz2wu4TrzhNiG5xZeVUmi6omiTm3exvV0aOdIQwPGOtzNlHRAl6acYOstbLuZGovr',
+    avatar: '',
     status: 'active',
     note: 'เก่งเขียนโค้ด Scratch เบื้องต้น',
     createdAt: '2025-05-15'

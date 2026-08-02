@@ -18,10 +18,13 @@ export interface Subject {
   id: string;
   code: string; // เช่น COM-101
   name: string; // เช่น วิทยาการคำนวณ (คอมพิวเตอร์), การงานอาชีพ
-  classLevel: string; // เช่น ป.1/1
-  defaultMaxScore: number;
-  icon: string; // Material symbol icon
+  classLevel?: string; // เช่น ป.1/1
+  defaultMaxScore?: number;
+  icon?: string; // Material symbol icon
   color: string; // Tailwind color theme
+  credits?: number;
+  gradeLevel?: string;
+  category?: string;
 }
 
 export interface Assignment {

@@ -5,6 +5,7 @@ import {
   Assignment,
   GradeEntry
 } from '../types.js';
+import { StudentAvatar } from './StudentAvatar.js';
 
 interface GradingTabProps {
   students: Student[];
@@ -290,11 +291,7 @@ export const GradingTab: React.FC<GradingTabProps> = ({
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={stu.avatar}
-                          alt={stu.nickname}
-                          className="w-9 h-9 rounded-full border-2 border-[#c9e6ff] object-cover"
-                        />
+                        <StudentAvatar student={stu} size="sm" />
                         <div>
                           <div className="font-bold text-[#151c27]">
                             {stu.title}{stu.firstName} {stu.lastName}

@@ -6,6 +6,7 @@ import {
   GradeEntry
 } from '../types.js';
 import { exportToCSV } from '../services/api.js';
+import { StudentAvatar } from './StudentAvatar.js';
 
 interface SummaryTabProps {
   students: Student[];
@@ -251,11 +252,7 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
                         isEven ? 'bg-[#ffffff]' : 'bg-[#f9f9ff]'
                       }`}
                     >
-                      <img
-                        src={student.avatar}
-                        alt={student.nickname}
-                        className="w-8 h-8 rounded-full border-2 border-[#a7d8ff] object-cover"
-                      />
+                      <StudentAvatar student={student} size="sm" />
                       <span>
                         {student.firstName} {student.lastName} ({student.nickname})
                       </span>
