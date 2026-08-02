@@ -20,7 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsMobileMenuOpen,
   onResetData
 }) => {
-  const navItems: { id: ActiveTab; label: string; icon: string; badge?: string; hidden?: boolean }[] = [
+  const rawNavItems: { id: ActiveTab; label: string; icon: string; badge?: string; hidden?: boolean }[] = [
     { id: 'dashboard', label: 'แดชบอร์ด', icon: 'dashboard' },
     { id: 'students', label: 'นักเรียน', icon: 'school' },
     { id: 'grading', label: 'การให้คะแนน', icon: 'grade' },
@@ -29,7 +29,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'githubExport', label: 'นำขึ้น GitHub & ส่งออก', icon: 'terminal', badge: 'Git', hidden: settings.hideGithubMenu },
     { id: 'aiAssistant', label: 'วิเคราะห์ AI น้องชิบิ', icon: 'auto_awesome', badge: 'AI', hidden: settings.hideAiMenu },
     { id: 'settings', label: 'การตั้งค่าระบบ', icon: 'settings_suggest', badge: 'ตั้งค่า' }
-  ].filter(item => !item.hidden);
+  ];
+  const navItems = rawNavItems.filter(item => !item.hidden);
 
   const handleNavClick = (tab: ActiveTab) => {
     setActiveTab(tab);

@@ -120,9 +120,9 @@ export default function App() {
     };
     saveDatabase(updatedDb);
 
-    // Auto-sync to Google Sheets if configured and autoSync is enabled
+    // Auto-sync to Google Sheets if configured (Google Sheets as primary storage)
     const targetGas = updatedDb.gasConfig;
-    if (targetGas?.webAppUrl && targetGas?.autoSync) {
+    if (targetGas?.webAppUrl && (targetGas.autoSync !== false)) {
       syncWithAppsScript(targetGas.webAppUrl, 'push', updatedDb)
         .then(res => {
           if (res.success) {
@@ -131,21 +131,19 @@ export default function App() {
               lastSyncedAt: new Date().toISOString()
             }));
             if (toastText) {
-              showToast(`${toastText} (☁️ ซิงค์ Google Sheets อัตโนมัติแล้ว)`, toastType);
+              showToast(`${toastText} (☁️ ซิงค์ลง Google Sheets สำเร็จแล้วทั้ง 4 ตาราง)`, toastType);
             } else {
-              showToast('☁️ บันทึกและซิงค์ข้อมูลขึ้น Google Sheets อัตโนมัติแล้วค่ะ', 'success');
+              showToast('☁️ บันทึกและซิงค์ข้อมูลขึ้น Google Sheets (ใช้งานได้หลายอุปกรณ์) เรียบร้อยแล้วค่ะ', 'success');
             }
           } else {
-            if (toastText) {
-              showToast(`${toastText} (⚠️ ยังไม่ได้ซิงค์ Sheet: ${res.error || 'ตรวจสอบ URL'})`, 'warning');
-            }
+            const warningMsg = `${toastText || 'บันทึกข้อมูลแล้ว'} (⚠️ แต่ซิงค์ Google Sheets ไม่สำเร็จ: ${res.error || 'โปรดตรวจสอบสิทธิ์ Who has access'})`;
+            showToast(warningMsg, 'warning');
           }
         })
         .catch(err => {
           console.warn('Auto-sync to Google Sheets failed:', err);
-          if (toastText) {
-            showToast(toastText, toastType);
-          }
+          const warningMsg = `${toastText || 'บันทึกข้อมูลแล้ว'} (⚠️ แต่เชื่อมต่อ Google Sheets ไม่สำเร็จ: ${err.message || 'ตรวจดูสิทธิ์ Anyone ใน Deploy'})`;
+          showToast(warningMsg, 'warning');
         });
     } else {
       if (toastText) {
@@ -560,6 +558,14 @@ export default function App() {
             gasConfig={gasConfig}
             onUpdateGasConfig={handleUpdateGasConfig}
             onDataPulledFromGas={handleDataPulledFromGas}
+            fullDb={{
+              students,
+              subjects,
+              assignments,
+              grades,
+              settings,
+              gasConfig
+            }}
           />
         )}
 

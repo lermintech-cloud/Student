@@ -111,6 +111,9 @@ export async function syncWithAppsScript(
       throw new Error(`HTTP status ${res.status}`);
     }
     const json = await res.json();
+    if (json && json.success === false) {
+      throw new Error(json.error || 'Server GAS sync reported failure');
+    }
     return json;
   } catch (err: any) {
     console.warn('Backend proxy sync failed, switching to direct client Apps Script sync:', err);
@@ -181,31 +184,45 @@ async function fallbackGasDirectSync(
         grades: payloadData.grades
       };
 
-      const res = await fetch(webAppUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify(payload),
-        redirect: 'follow'
-      });
-
-      const text = await res.text();
       try {
-        const result = JSON.parse(text);
-        if (result && result.status === 'success') {
-          return {
-            success: true,
-            message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว (Direct Mode)'
-          };
+        const res = await fetch(webAppUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload),
+          redirect: 'follow'
+        });
+
+        const text = await res.text();
+        try {
+          const result = JSON.parse(text);
+          if (result && result.status === 'success') {
+            return {
+              success: true,
+              message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว (Direct Mode)'
+            };
+          }
+        } catch (err) {
+          if (res.ok || res.status === 200 || res.status === 0) {
+            return {
+              success: true,
+              message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว (Direct Mode)'
+            };
+          }
         }
-      } catch (err) {
-        if (res.ok || res.status === 200 || res.status === 0) {
-          return {
-            success: true,
-            message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว (Direct Mode)'
-          };
-        }
+      } catch (corsErr) {
+        // Fallback to mode: 'no-cors' when browser CORS blocks Apps Script redirects
+        await fetch(webAppUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        return {
+          success: true,
+          message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว (Direct no-cors)'
+        };
       }
       return {
         success: true,

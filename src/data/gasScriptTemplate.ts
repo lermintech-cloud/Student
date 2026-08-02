@@ -21,7 +21,7 @@ function setupChibiGradebookSheets() {
   let stuSheet = ss.getSheetByName("Students");
   if (!stuSheet) {
     stuSheet = ss.insertSheet("Students");
-    stuSheet.appendRow(["ID", "Code", "Title", "FirstName", "LastName", "Nickname", "Gender", "ClassLevel", "Room", "Status", "Note"]);
+    stuSheet.appendRow(["ID", "Code", "Title", "FirstName", "LastName", "Nickname", "Gender", "ClassLevel", "Room", "Status", "Note", "Avatar", "CreatedAt"]);
     styleHeader(stuSheet, "#a7d8ff", "#001e2f");
   }
 
@@ -29,7 +29,7 @@ function setupChibiGradebookSheets() {
   let subSheet = ss.getSheetByName("Subjects");
   if (!subSheet) {
     subSheet = ss.insertSheet("Subjects");
-    subSheet.appendRow(["ID", "Code", "Name", "ClassLevel", "DefaultMaxScore"]);
+    subSheet.appendRow(["ID", "Code", "Name", "ClassLevel", "DefaultMaxScore", "Icon", "Color"]);
     styleHeader(subSheet, "#ffd9df", "#330f19");
   }
 
@@ -93,10 +93,10 @@ function doPost(e) {
 
     if (action === 'sync_all' || action === 'push') {
       if (payload.students) saveObjectsToSheet(ss.getSheetByName("Students"), payload.students, [
-        "id", "code", "title", "firstName", "lastName", "nickname", "gender", "classLevel", "room", "status", "note"
+        "id", "code", "title", "firstName", "lastName", "nickname", "gender", "classLevel", "room", "status", "note", "avatar", "createdAt"
       ]);
       if (payload.subjects) saveObjectsToSheet(ss.getSheetByName("Subjects"), payload.subjects, [
-        "id", "code", "name", "classLevel", "defaultMaxScore"
+        "id", "code", "name", "classLevel", "defaultMaxScore", "icon", "color"
       ]);
       if (payload.assignments) saveObjectsToSheet(ss.getSheetByName("Assignments"), payload.assignments, [
         "id", "subjectId", "classLevel", "title", "description", "maxScore", "dueDate", "category"

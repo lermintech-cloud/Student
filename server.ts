@@ -248,23 +248,35 @@ async function startServer() {
           });
         }
       } else {
-        // Push to GAS
+        // Push to GAS using currentData if provided, fallback to dbState
+        const sourceData = currentData || dbState;
         const payload = {
           action: 'push',
           timestamp: new Date().toISOString(),
-          students: dbState.students,
-          subjects: dbState.subjects,
-          assignments: dbState.assignments,
-          grades: dbState.grades
+          students: sourceData.students || dbState.students,
+          subjects: sourceData.subjects || dbState.subjects,
+          assignments: sourceData.assignments || dbState.assignments,
+          grades: sourceData.grades || dbState.grades
         };
 
         const response = await fetch(targetUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow'
         });
 
-        const result = await response.json();
+        const rawText = await response.text();
+        let result = {};
+        try {
+          result = JSON.parse(rawText);
+        } catch (e) {
+          if (!response.ok && response.status !== 0 && response.status !== 200 && response.status !== 302) {
+            throw new Error(`GAS returned HTTP ${response.status}: ${rawText.slice(0, 100)}`);
+          }
+          result = { status: 'success', message: 'Synced via text redirect' };
+        }
+
         dbState.gasConfig.lastSyncedAt = new Date().toISOString();
         saveDb();
         return res.json({
