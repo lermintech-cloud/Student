@@ -110,14 +110,14 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => exportToCSV(students, assignments, grades)}
-            className="bg-[#ffffff] text-[#306385] border-2 border-[#a7d8ff] hover:border-[#306385] px-4 py-2 rounded-full text-sm font-bold chibi-button flex items-center gap-1.5"
+            className="bg-[#e7f1f8] hover:bg-[#d5e6f3] text-[#1c4966] border border-[#b8d6eb] px-4 py-2.5 rounded-full text-sm font-bold chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
             <span className="material-symbols-outlined text-base">download</span>
             <span>ส่งออก Excel / CSV</span>
           </button>
           <button
             onClick={onOpenAiAssistant}
-            className="bg-[#306385] text-white px-5 py-2 rounded-full text-sm font-bold shadow-sm chibi-button flex items-center gap-1.5"
+            className="bg-[#306385] hover:bg-[#204e6c] text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-sm chibi-button flex items-center gap-1.5 transition-all"
           >
             <span className="material-symbols-outlined text-base">summarize</span>
             <span>สร้างรายงานสรุป AI</span>

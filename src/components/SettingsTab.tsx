@@ -9,6 +9,18 @@ import {
   GradeEntry
 } from '../types.js';
 import { FullDbState } from '../services/api.js';
+import {
+  Rocket,
+  School,
+  BookOpen,
+  Award,
+  Puzzle,
+  Database,
+  Cloud,
+  Code,
+  Terminal,
+  Settings as SettingsIcon
+} from 'lucide-react';
 
 interface SettingsTabProps {
   settings: SchoolSettings;
@@ -105,6 +117,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 }) => {
   // Section switcher
   const [activeSection, setActiveSection] = useState<'profile' | 'subjects' | 'grades' | 'integrations' | 'backup'>('profile');
+  const isGasConnected = Boolean(gasConfig.webAppUrl && gasConfig.webAppUrl.startsWith('https://script.google.com'));
 
   // Form states for school & teacher
   const [formSettings, setFormSettings] = useState<SchoolSettings>({ ...settings });
@@ -217,6 +230,41 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         </div>
       </div>
 
+      {/* GitHub & Apps Script Connection Banner */}
+      <div className="bg-gradient-to-r from-[#a7d8ff]/30 via-[#ffd9df]/30 to-[#aef2c2]/30 p-6 rounded-3xl chibi-shadow border border-[#dce2f3] flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-[#306385] text-white flex items-center justify-center shadow-md">
+            <Rocket className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h3 className="font-display text-xl font-bold text-[#306385]">
+              ทำให้เป็นจริง! พร้อมนำขึ้น GitHub และเชื่อมฐานข้อมูล Google Apps Script
+            </h3>
+            <p className="text-sm text-[#41474d] mt-1">
+              {isGasConnected
+                ? '✅ เชื่อมต่อ Google Sheets เรียบร้อยแล้ว ระบบสามารถซิงค์ขึ้น Cloud ได้ทันที'
+                : '💡 คุณครูสามารถคัดลอกโค้ดไปวางใน Google Apps Script หรือดาวน์โหลดซอร์สโค้ดขึ้น GitHub ได้ง่ายๆ'}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab('appScriptSync')}
+            className="bg-[#306385] hover:bg-[#204e6c] text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-sm chibi-button flex items-center gap-2 transition-all"
+          >
+            <Cloud className="w-4 h-4" />
+            <span>เชื่อมฐานข้อมูล Apps Script</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('githubExport')}
+            className="bg-[#e7f1f8] hover:bg-[#d5e6f3] text-[#1c4966] border border-[#b8d6eb] px-5 py-2.5 rounded-full text-sm font-bold chibi-button flex items-center gap-2 shadow-sm transition-all"
+          >
+            <Code className="w-4 h-4" />
+            <span>คู่มือนำขึ้น GitHub</span>
+          </button>
+        </div>
+      </div>
+
       {/* Settings Navigation Pills */}
       <div className="flex flex-wrap items-center gap-2 bg-[#f0f3ff] p-2 rounded-2xl border border-[#dce2f3]/80">
         <button
@@ -227,7 +275,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               : 'text-[#41474d] hover:bg-white/60 hover:text-[#306385]'
           }`}
         >
-          <span className="material-symbols-outlined text-lg">school</span>
+          <School className="w-4 h-4" />
           <span>ข้อมูลโรงเรียน & คุณครู</span>
         </button>
         <button
@@ -238,7 +286,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               : 'text-[#41474d] hover:bg-white/60 hover:text-[#306385]'
           }`}
         >
-          <span className="material-symbols-outlined text-lg">menu_book</span>
+          <BookOpen className="w-4 h-4" />
           <span>จัดการรายวิชา ({subjects.length})</span>
         </button>
         <button
@@ -249,7 +297,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               : 'text-[#41474d] hover:bg-white/60 hover:text-[#306385]'
           }`}
         >
-          <span className="material-symbols-outlined text-lg">grade</span>
+          <Award className="w-4 h-4" />
           <span>เกณฑ์คะแนน & ตัดเกรด</span>
         </button>
         <button
@@ -260,7 +308,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               : 'text-[#41474d] hover:bg-white/60 hover:text-[#306385]'
           }`}
         >
-          <span className="material-symbols-outlined text-lg">extension</span>
+          <Puzzle className="w-4 h-4" />
           <span>จัดการหน้าเว็บ & เชื่อมต่อระบบ</span>
         </button>
         <button
@@ -271,7 +319,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               : 'text-[#41474d] hover:bg-white/60 hover:text-[#306385]'
           }`}
         >
-          <span className="material-symbols-outlined text-lg">storage</span>
+          <Database className="w-4 h-4" />
           <span>สำรองข้อมูล & รีเซ็ตระบบ</span>
         </button>
       </div>
@@ -281,8 +329,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         <div className="bg-[#ffffff] rounded-3xl p-6 md:p-8 chibi-shadow space-y-6">
           <div className="flex items-center justify-between border-b border-[#dce2f3] pb-4">
             <div>
-              <h3 className="font-display text-xl font-bold text-[#306385]">
-                🏫 ข้อมูลทั่วไปของโรงเรียนและคุณครูผู้สอน
+              <h3 className="font-display text-xl font-bold text-[#306385] flex items-center gap-2">
+                <School className="w-6 h-6 text-[#306385]" />
+                <span>ข้อมูลทั่วไปของโรงเรียนและคุณครูผู้สอน</span>
               </h3>
               <p className="text-xs text-[#41474d]">
                 ข้อมูลนี้จะแสดงในส่วนหัวเว็บ รายงานสรุปผล และไฟล์ที่ส่งออกทั้งหมด

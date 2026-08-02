@@ -203,21 +203,21 @@ export const GradingTab: React.FC<GradingTabProps> = ({
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={handleGiveAllFullScore}
-            className="bg-[#aef2c2] text-[#00210f] text-xs md:text-sm font-bold py-2 px-4 rounded-full chibi-button flex items-center gap-1.5 shadow-sm"
+            className="bg-[#aef2c2] hover:bg-[#93e8ae] text-[#00210f] text-xs md:text-sm font-bold py-2.5 px-4 rounded-full chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
             <span className="material-symbols-outlined text-base">auto_fix_high</span>
             <span>ให้คะแนนเต็มทุกคน ({currentAssign.maxScore})</span>
           </button>
           <button
             onClick={() => setEditingAssignModal({ ...currentAssign })}
-            className="bg-[#ffffff] text-[#306385] border-2 border-[#306385] text-xs md:text-sm font-bold py-2 px-4 rounded-full chibi-button flex items-center gap-1.5"
+            className="bg-[#e7f1f8] hover:bg-[#d5e6f3] text-[#1c4966] border border-[#b8d6eb] text-xs md:text-sm font-bold py-2.5 px-4 rounded-full chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
             <span className="material-symbols-outlined text-base">edit</span>
             <span>แก้ไขงานนี้</span>
           </button>
           <button
             onClick={onOpenNewAssignment}
-            className="bg-[#306385] text-white text-xs md:text-sm font-bold py-2 px-5 rounded-full chibi-button flex items-center gap-1.5 shadow-sm"
+            className="bg-[#306385] hover:bg-[#204e6c] text-white text-xs md:text-sm font-bold py-2.5 px-5 rounded-full chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
             <span className="material-symbols-outlined text-base">add</span>
             <span>มอบหมายงานใหม่</span>

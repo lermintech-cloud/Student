@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActiveTab, SchoolSettings, AppScriptConfig } from '../types.js';
+import { Cloud, CloudOff, Sparkles, Code, Menu, X, Settings } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -33,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="lg:hidden p-2 rounded-full hover:bg-[#f0f3ff] text-[#306385] transition-colors"
           title="เมนูนำทาง"
         >
-          <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
         <div className="flex items-center gap-2">
           <span className="font-display text-xl font-extrabold text-[#306385]">
@@ -65,16 +66,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         {settings.showQuickButtonsInNavbar && (
           <button
             onClick={() => setActiveTab('appScriptSync')}
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all chibi-button ${
+            className={`hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all chibi-button shadow-2xs ${
               isGasConnected
                 ? 'bg-[#ebf7f0] text-[#0a522f] border border-[#93d5a7]'
                 : 'bg-[#fff9e6] text-[#996300] border border-[#f4b6c1]'
             }`}
             title="ตั้งค่าเชื่อมต่อ Google Apps Script / Sheets"
           >
-            <span className="material-symbols-outlined text-sm">
-              {isGasConnected ? 'cloud_done' : 'cloud_off'}
-            </span>
+            {isGasConnected ? <Cloud className="w-4 h-4 text-[#0a522f]" /> : <CloudOff className="w-4 h-4 text-[#996300]" />}
             <span>{isGasConnected ? 'Sheets เชื่อมต่อแล้ว' : 'ยังไม่เชื่อม Apps Script'}</span>
           </button>
         )}
@@ -83,10 +82,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {!settings.hideAiMenu && (
           <button
             onClick={onOpenAiAssistant}
-            className="flex items-center gap-1.5 bg-[#fdbec9] text-[#330f19] hover:bg-[#f4b6c1] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm chibi-button"
+            className="flex items-center gap-1.5 bg-[#fdbec9] hover:bg-[#f8a8b6] text-[#330f19] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm chibi-button transition-all"
             title="น้องชิบิ AI ผู้ช่วยครู"
           >
-            <span className="material-symbols-outlined text-base">auto_awesome</span>
+            <Sparkles className="w-4 h-4 text-[#330f19]" />
             <span className="hidden md:inline">น้องชิบิ AI</span>
           </button>
         )}
@@ -95,10 +94,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {settings.showQuickButtonsInNavbar && (
           <button
             onClick={() => setActiveTab('githubExport')}
-            className="hidden lg:flex items-center gap-1 bg-[#f0f3ff] text-[#306385] hover:bg-[#e2e8f8] px-3 py-1.5 rounded-full text-xs font-bold chibi-button border border-[#c1c7ce]/50"
+            className="hidden lg:flex items-center gap-1.5 bg-[#f0f3ff] hover:bg-[#e2e8f8] text-[#306385] px-3.5 py-1.5 rounded-full text-xs font-bold chibi-button border border-[#c1c7ce]/50 transition-all shadow-2xs"
             title="ส่งออกขึ้น GitHub & ซอร์สโค้ด"
           >
-            <span className="material-symbols-outlined text-sm">code</span>
+            <Code className="w-4 h-4 text-[#306385]" />
             <span>GitHub</span>
           </button>
         )}
@@ -112,14 +111,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           <img
             src={settings.teacherAvatarUrl}
             alt={settings.teacherName}
-            className="w-8 h-8 rounded-full border-2 border-[#a7d8ff] object-cover"
+            className="w-8 h-8 rounded-full border-2 border-[#a7d8ff] object-cover shadow-2xs"
           />
           <div className="hidden xl:block text-left">
             <div className="text-xs font-bold text-[#151c27] leading-tight">
               {settings.teacherName}
             </div>
-            <div className="text-[10px] text-[#306385] font-semibold">
-              {settings.teacherRole || 'ตั้งค่าระบบ ⚙️'}
+            <div className="text-[10px] text-[#306385] font-semibold flex items-center gap-1">
+              <span>{settings.teacherRole || 'ตั้งค่าระบบ'}</span>
+              <Settings className="w-3 h-3 text-[#306385]" />
             </div>
           </div>
         </button>

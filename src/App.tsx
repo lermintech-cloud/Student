@@ -45,7 +45,7 @@ export default function App() {
   const [settings, setSettings] = useState<SchoolSettings>(initialSchoolSettings);
   const [gasConfig, setGasConfig] = useState<AppScriptConfig>(initialAppScriptConfig);
 
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('assign-3');
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
   const [isNewAssignModalOpen, setIsNewAssignModalOpen] = useState(false);
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -5,8 +5,35 @@ import {
   Assignment,
   GradeEntry,
   ActiveTab,
-  AppScriptConfig
+  AppScriptConfig,
+  SchoolSettings
 } from '../types.js';
+import {
+  GraduationCap,
+  Wand2,
+  Share2,
+  Plus,
+  Sparkles,
+  BookOpen,
+  BarChart3,
+  Users,
+  Award,
+  FileText,
+  CheckCircle,
+  CheckCircle2,
+  AlertCircle,
+  Cloud,
+  Calendar,
+  Star,
+  School,
+  Code,
+  Calculator,
+  Globe,
+  Palette,
+  Music,
+  Atom,
+  Heart
+} from 'lucide-react';
 
 interface DashboardTabProps {
   students: Student[];
@@ -14,11 +41,39 @@ interface DashboardTabProps {
   assignments: Assignment[];
   grades: GradeEntry[];
   gasConfig: AppScriptConfig;
+  settings?: SchoolSettings;
   setActiveTab: (tab: ActiveTab) => void;
   onOpenNewAssignment: () => void;
   onOpenAiAssistant: () => void;
   onGiveAllFullScore: () => void;
 }
+
+const getSubjectLucideIcon = (iconName: string, className = "w-7 h-7") => {
+  switch (iconName) {
+    case 'computer':
+    case 'code':
+      return <Code className={className} />;
+    case 'calculate':
+    case 'calculator':
+      return <Calculator className={className} />;
+    case 'science':
+    case 'atom':
+      return <Atom className={className} />;
+    case 'language':
+    case 'globe':
+      return <Globe className={className} />;
+    case 'palette':
+      return <Palette className={className} />;
+    case 'music_note':
+      return <Music className={className} />;
+    case 'favorite':
+      return <Heart className={className} />;
+    case 'school':
+      return <School className={className} />;
+    default:
+      return <BookOpen className={className} />;
+  }
+};
 
 export const DashboardTab: React.FC<DashboardTabProps> = ({
   students,
@@ -26,13 +81,13 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   assignments,
   grades,
   gasConfig,
+  settings,
   setActiveTab,
   onOpenNewAssignment,
   onOpenAiAssistant,
   onGiveAllFullScore
 }) => {
   const activeStudents = students.filter(s => s.status === 'active');
-  const isGasConnected = Boolean(gasConfig.webAppUrl && gasConfig.webAppUrl.startsWith('https://script.google.com'));
 
   // Calculate statistics
   let totalScoreSum = 0;
@@ -73,83 +128,82 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   }).length || 2;
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      {/* Top Banner for GitHub & Apps Script Connection */}
-      <div className="bg-gradient-to-r from-[#a7d8ff]/30 via-[#ffd9df]/30 to-[#aef2c2]/30 p-6 rounded-3xl chibi-shadow border border-[#dce2f3] flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#306385] text-white flex items-center justify-center shadow-md">
-            <span className="material-symbols-outlined text-3xl">rocket_launch</span>
+    <div className="space-y-6 animate-fadeIn">
+      {/* Teacher Executive Hero Welcome Card */}
+      <div className="bg-gradient-to-r from-[#e8f3fc] via-[#eff7fd] to-[#ebf7f0] border border-[#b8d6eb] p-6 md:p-8 rounded-3xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex items-start md:items-center gap-5">
+          <div className="w-16 h-16 rounded-2xl bg-[#306385] text-white flex items-center justify-center shadow-md flex-shrink-0">
+            <GraduationCap className="w-9 h-9" />
           </div>
           <div>
-            <h3 className="font-display text-xl font-bold text-[#306385]">
-              ทำให้เป็นจริง! พร้อมนำขึ้น GitHub และเชื่อมฐานข้อมูล Google Apps Script
-            </h3>
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 bg-[#ffffff] text-[#306385] border border-[#a7d8ff] px-3 py-1 rounded-full text-xs font-bold shadow-2xs">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{settings?.currentTerm || 'ภาคเรียนที่ 1/2567'}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-[#aef2c2]/60 text-[#0a522f] px-3 py-1 rounded-full text-xs font-bold">
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>บันทึกอัตโนมัติในฐานข้อมูลเมื่อสักครู่</span>
+              </span>
+            </div>
+            <h2 className="font-display text-2xl md:text-3xl font-extrabold text-[#306385]">
+              สวัสดีค่ะ คุณครู{settings?.teacherName || 'ผู้สอน'}
+            </h2>
             <p className="text-sm text-[#41474d] mt-1">
-              {isGasConnected
-                ? '✅ เชื่อมต่อ Google Sheets เรียบร้อยแล้ว ระบบสามารถซิงค์ขึ้น Cloud ได้ทันที'
-                : '💡 คุณครูสามารถคัดลอกโค้ดไปวางใน Google Apps Script หรือดาวน์โหลดซอร์สโค้ดขึ้น GitHub ได้ง่ายๆ'}
+              {settings?.schoolName || 'โรงเรียน'} • ระบบบริหารจัดการชั้นเรียนและบันทึกคะแนนนักเรียน
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setActiveTab('appScriptSync')}
-            className="bg-[#306385] text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-sm chibi-button flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-base">cloud_sync</span>
-            <span>เชื่อมฐานข้อมูล Apps Script</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('githubExport')}
-            className="bg-[#ffffff] text-[#306385] border-2 border-[#306385] px-5 py-2 rounded-full text-sm font-bold chibi-button flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-base">code</span>
-            <span>คู่มือนำขึ้น GitHub</span>
-          </button>
+        <div className="flex flex-wrap md:flex-col items-start md:items-end gap-2 w-full md:w-auto border-t md:border-t-0 pt-3 md:pt-0 border-[#c1d3e0]/40">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/80 border border-[#c1d3e0]/60 text-xs font-bold text-[#306385] shadow-2xs">
+            <Users className="w-4 h-4 text-[#306385]" />
+            <span>นักเรียนทั้งหมด {activeStudents.length} คน</span>
+          </div>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/80 border border-[#c1d3e0]/60 text-xs font-bold text-[#0a522f] shadow-2xs">
+            <BookOpen className="w-4 h-4 text-[#0a522f]" />
+            <span>เปิดสอน {subjects.length} รายวิชา</span>
+          </div>
         </div>
       </div>
 
       {/* Header & Quick Action Toolbar */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-2">
         <div>
-          <h2 className="font-display text-2xl md:text-3xl font-extrabold text-[#306385]">
+          <h3 className="font-display text-xl md:text-2xl font-extrabold text-[#306385]">
             วิทยาการคำนวณ: การเขียนโปรแกรมเบื้องต้น
-          </h2>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="inline-flex items-center gap-1 bg-[#e2e8f8] text-[#41474d] px-3 py-1 rounded-full text-xs font-bold">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-              <span>บันทึกอัตโนมัติในฐานข้อมูลเมื่อสักครู่</span>
-            </span>
-          </div>
+          </h3>
+          <p className="text-xs text-[#41474d] mt-0.5">
+            จัดการคะแนนและมอบหมายงานสำหรับนักเรียนในรายวิชาปัจจุบัน
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={onGiveAllFullScore}
-            className="bg-[#aef2c2] text-[#00210f] text-xs md:text-sm font-bold py-2.5 px-4 rounded-full chibi-button flex items-center gap-1.5 shadow-sm"
+            className="bg-[#aef2c2] hover:bg-[#93e8ae] text-[#00210f] text-xs md:text-sm font-bold py-2.5 px-4 rounded-full chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
-            <span className="material-symbols-outlined text-base">auto_fix_high</span>
+            <Wand2 className="w-4 h-4" />
             <span>ให้คะแนนเต็มทุกคน</span>
           </button>
           <button
             onClick={() => setActiveTab('summary')}
-            className="bg-[#ffffff] text-[#306385] border-2 border-[#306385] text-xs md:text-sm font-bold py-2 px-4 rounded-full chibi-button flex items-center gap-1.5"
+            className="bg-[#e7f1f8] hover:bg-[#d5e6f3] text-[#1c4966] border border-[#b8d6eb] text-xs md:text-sm font-bold py-2.5 px-4 rounded-full chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
-            <span className="material-symbols-outlined text-base">ios_share</span>
+            <Share2 className="w-4 h-4" />
             <span>ส่งออกรายงาน</span>
           </button>
           <button
             onClick={onOpenNewAssignment}
-            className="bg-[#fdbec9] text-[#330f19] text-xs md:text-sm font-bold py-2 px-4 rounded-full chibi-button flex items-center gap-1.5"
+            className="bg-[#fdbec9] hover:bg-[#f8a8b6] text-[#330f19] text-xs md:text-sm font-bold py-2.5 px-4 rounded-full chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
-            <span className="material-symbols-outlined text-base">add</span>
+            <Plus className="w-4 h-4" />
             <span>มอบหมายงาน</span>
           </button>
           <button
             onClick={onOpenAiAssistant}
-            className="bg-[#306385] text-white text-xs md:text-sm font-bold py-2.5 px-6 rounded-full chibi-button flex items-center gap-1.5 shadow-sm"
+            className="bg-[#306385] hover:bg-[#234d6a] text-white text-xs md:text-sm font-bold py-2.5 px-6 rounded-full chibi-button flex items-center gap-1.5 shadow-sm transition-all"
           >
-            <span className="material-symbols-outlined text-base">auto_awesome</span>
+            <Sparkles className="w-4 h-4" />
             <span>น้องชิบิ AI สรุปผล</span>
           </button>
         </div>
@@ -157,7 +211,12 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
       {/* Subjects Section */}
       <section className="space-y-4">
-        <h3 className="font-display text-xl font-bold text-[#306385] ml-1">รายวิชาที่สอน</h3>
+        <div className="flex items-center gap-2.5 ml-1">
+          <div className="w-8 h-8 rounded-lg bg-[#e2e8f8] flex items-center justify-center text-[#306385] shadow-sm">
+            <BookOpen className="w-5 h-5 text-[#306385]" />
+          </div>
+          <h3 className="font-display text-xl font-bold text-[#306385]">รายวิชาที่สอน</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {subjects.map((sub, index) => {
             const isFirst = index === 0;
@@ -182,7 +241,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                       : 'bg-[#aef2c2] text-[#2a6a45]'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-3xl">{sub.icon}</span>
+                  {getSubjectLucideIcon(sub.icon, "w-7 h-7")}
                 </div>
                 <div>
                   <div className="text-xs font-bold opacity-80">{sub.code}</div>
@@ -197,9 +256,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
       {/* Overview Bento Grid */}
       <section>
-        <h3 className="font-display text-xl font-bold text-[#306385] mb-5 ml-1">
-          ภาพรวมห้องเรียน
-        </h3>
+        <div className="flex items-center gap-2.5 mb-5 ml-1">
+          <div className="w-8 h-8 rounded-lg bg-[#e2e8f8] flex items-center justify-center text-[#306385] shadow-sm">
+            <BarChart3 className="w-5 h-5 text-[#306385]" />
+          </div>
+          <h3 className="font-display text-xl font-bold text-[#306385]">
+            ภาพรวมห้องเรียน
+          </h3>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
           {/* Card 1: Total students */}
           <div
@@ -207,7 +271,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             className="bg-[#ffffff] rounded-[2rem] p-6 shadow-sm border-2 border-[#a7d8ff] cursor-pointer chibi-button"
           >
             <div className="flex items-center gap-3 mb-4 text-[#41474d]">
-              <span className="material-symbols-outlined text-[#306385] text-3xl">menu_book</span>
+              <Users className="w-7 h-7 text-[#306385]" />
               <span className="font-bold text-sm">นักเรียนทั้งหมด</span>
             </div>
             <div className="font-display text-4xl md:text-5xl font-extrabold text-[#306385]">
@@ -222,7 +286,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             className="bg-[#ffffff] rounded-[2rem] p-6 shadow-sm border-2 border-[#fdbec9] cursor-pointer chibi-button"
           >
             <div className="flex items-center gap-3 mb-4 text-[#41474d]">
-              <span className="material-symbols-outlined text-[#81515a] text-3xl">assignment</span>
+              <FileText className="w-7 h-7 text-[#81515a]" />
               <span className="font-bold text-sm">งานที่มอบหมายทั้งหมด</span>
             </div>
             <div className="font-display text-4xl md:text-5xl font-extrabold text-[#81515a]">
@@ -237,7 +301,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             className="bg-[#ffffff] rounded-[2rem] p-6 shadow-sm border-2 border-[#aef2c2] cursor-pointer chibi-button"
           >
             <div className="flex items-center gap-3 mb-4 text-[#41474d]">
-              <span className="material-symbols-outlined text-[#2a6a45] text-3xl">star</span>
+              <Star className="w-7 h-7 text-[#2a6a45]" />
               <span className="font-bold text-sm">คะแนนเฉลี่ย</span>
             </div>
             <div className="font-display text-4xl md:text-5xl font-extrabold text-[#2a6a45]">
@@ -253,9 +317,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             className="bg-[#ffffff] rounded-[2rem] p-6 shadow-sm border-2 border-[#c9e6ff] cursor-pointer chibi-button"
           >
             <div className="flex items-center gap-3 mb-4 text-[#41474d]">
-              <span className="material-symbols-outlined text-[#001e2f] text-3xl">
-                emoji_events
-              </span>
+              <Award className="w-7 h-7 text-[#001e2f]" />
               <span className="font-bold text-sm">นักเรียนดีเด่น (95%+)</span>
             </div>
             <div className="font-display text-2xl md:text-3xl font-extrabold text-[#306385] truncate mt-2">
@@ -270,7 +332,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             className="bg-[#ffd9df]/30 rounded-[2rem] p-6 shadow-sm border border-[#f4b6c1] cursor-pointer chibi-button"
           >
             <div className="flex items-center gap-3 mb-4 text-[#ba1a1a]">
-              <span className="material-symbols-outlined text-3xl">warning</span>
+              <AlertCircle className="w-7 h-7 text-[#ba1a1a]" />
               <span className="font-bold text-sm">งานค้างส่ง</span>
             </div>
             <div className="font-display text-4xl md:text-5xl font-extrabold text-[#ba1a1a]">
@@ -285,9 +347,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             className="bg-[#e7eefe] rounded-[2rem] p-6 shadow-sm border-2 border-[#dce2f3] cursor-pointer chibi-button"
           >
             <div className="flex items-center gap-3 mb-4 text-[#41474d]">
-              <span className="material-symbols-outlined text-[#306385] text-3xl">
-                pending_actions
-              </span>
+              <CheckCircle2 className="w-7 h-7 text-[#306385]" />
               <span className="font-bold text-sm">รอการตรวจ</span>
             </div>
             <div className="font-display text-4xl md:text-5xl font-extrabold text-[#306385]">

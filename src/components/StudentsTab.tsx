@@ -541,7 +541,7 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => exportToCSV(students, assignments, grades)}
-            className="flex items-center gap-2 bg-[#ffffff] text-[#306385] border-2 border-[#a7d8ff] hover:border-[#306385] text-sm font-bold px-4 py-2 rounded-full shadow-sm chibi-button"
+            className="flex items-center gap-2 bg-[#e7f1f8] hover:bg-[#d5e6f3] text-[#1c4966] border border-[#b8d6eb] text-sm font-bold px-4 py-2.5 rounded-full shadow-sm chibi-button transition-all"
             title="ดาวน์โหลดไฟล์ CSV สำหรับ Excel"
           >
             <span className="material-symbols-outlined text-base">download</span>

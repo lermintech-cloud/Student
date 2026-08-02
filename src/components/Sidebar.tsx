@@ -1,5 +1,19 @@
 import React from 'react';
 import { ActiveTab, SchoolSettings } from '../types.js';
+import {
+  LayoutDashboard,
+  Users,
+  Award,
+  BarChart3,
+  Cloud,
+  Terminal,
+  Sparkles,
+  Settings as SettingsIcon,
+  Plus,
+  X,
+  CheckCircle2,
+  School
+} from 'lucide-react';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -20,17 +34,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsMobileMenuOpen,
   onResetData
 }) => {
-  const rawNavItems: { id: ActiveTab; label: string; icon: string; badge?: string; hidden?: boolean }[] = [
-    { id: 'dashboard', label: 'แดชบอร์ด', icon: 'dashboard' },
-    { id: 'students', label: 'นักเรียน', icon: 'school' },
-    { id: 'grading', label: 'การให้คะแนน', icon: 'grade' },
-    { id: 'summary', label: 'สรุปผล', icon: 'grid_on' },
-    { id: 'appScriptSync', label: 'เชื่อมต่อ Apps Script', icon: 'cloud_sync', badge: 'Sheets', hidden: settings.hideGasMenu },
-    { id: 'githubExport', label: 'นำขึ้น GitHub & ส่งออก', icon: 'terminal', badge: 'Git', hidden: settings.hideGithubMenu },
-    { id: 'aiAssistant', label: 'วิเคราะห์ AI น้องชิบิ', icon: 'auto_awesome', badge: 'AI', hidden: settings.hideAiMenu },
-    { id: 'settings', label: 'การตั้งค่าระบบ', icon: 'settings_suggest', badge: 'ตั้งค่า' }
+  const rawNavItems: { id: ActiveTab; label: string; badge?: string; hidden?: boolean }[] = [
+    { id: 'dashboard', label: 'แดชบอร์ด' },
+    { id: 'students', label: 'นักเรียน' },
+    { id: 'grading', label: 'การให้คะแนน' },
+    { id: 'summary', label: 'สรุปผล' },
+    { id: 'appScriptSync', label: 'เชื่อมต่อ Apps Script', badge: 'Sheets', hidden: settings.hideGasMenu },
+    { id: 'githubExport', label: 'นำขึ้น GitHub & ส่งออก', badge: 'Git', hidden: settings.hideGithubMenu },
+    { id: 'aiAssistant', label: 'วิเคราะห์ AI น้องชิบิ', badge: 'AI', hidden: settings.hideAiMenu },
+    { id: 'settings', label: 'การตั้งค่าระบบ', badge: 'ตั้งค่า' }
   ];
   const navItems = rawNavItems.filter(item => !item.hidden);
+
+  const getNavIcon = (id: ActiveTab, isActive: boolean) => {
+    const className = `w-5 h-5 ${isActive ? 'text-[#001e2f]' : 'text-[#306385]'}`;
+    switch (id) {
+      case 'dashboard':
+        return <LayoutDashboard className={className} />;
+      case 'students':
+        return <Users className={className} />;
+      case 'grading':
+        return <Award className={className} />;
+      case 'summary':
+        return <BarChart3 className={className} />;
+      case 'appScriptSync':
+        return <Cloud className={className} />;
+      case 'githubExport':
+        return <Terminal className={className} />;
+      case 'aiAssistant':
+        return <Sparkles className={className} />;
+      case 'settings':
+        return <SettingsIcon className={className} />;
+      default:
+        return <School className={className} />;
+    }
+  };
 
   const handleNavClick = (tab: ActiveTab) => {
     setActiveTab(tab);
@@ -57,9 +95,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="mb-6 flex flex-col items-center relative">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden absolute top-0 right-0 p-1 rounded-full text-[#41474d] hover:bg-[#f0f3ff]"
+            className="lg:hidden absolute top-0 right-0 p-1.5 rounded-full text-[#41474d] hover:bg-[#f0f3ff]"
           >
-            <span className="material-symbols-outlined">close</span>
+            <X className="w-5 h-5" />
           </button>
           <div className="w-20 h-20 rounded-full overflow-hidden mb-3 border-4 border-[#e2e8f8] bg-[#e7eefe] shadow-sm">
             <img
@@ -89,14 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span
-                    className="material-symbols-outlined text-xl"
-                    style={{
-                      fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0"
-                    }}
-                  >
-                    {item.icon}
-                  </span>
+                  {getNavIcon(item.id, isActive)}
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
@@ -130,13 +161,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}
             className="w-full bg-[#fdbec9] text-[#330f19] hover:bg-[#f4b6c1] transition-colors rounded-full py-3.5 text-sm font-bold flex justify-center items-center gap-2 shadow-[0_4px_16px_rgba(253,190,201,0.5)] chibi-button"
           >
-            <span className="material-symbols-outlined text-lg">add</span>
+            <Plus className="w-5 h-5" />
             <span>มอบหมายงานใหม่</span>
           </button>
 
           <div className="flex items-center justify-center pt-1">
             <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#0a522f] bg-[#ebf7f0] border border-[#93d5a7] px-3.5 py-1.5 rounded-full w-full justify-center shadow-xs">
-              <span className="material-symbols-outlined text-base">cloud_done</span>
+              <CheckCircle2 className="w-4 h-4 text-[#0a522f]" />
               <span>ระบบบันทึกข้อมูลอัตโนมัติ</span>
             </div>
           </div>
