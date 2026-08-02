@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SchoolSettings,
   Subject,
@@ -104,11 +104,15 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   onRestoreDb
 }) => {
   // Section switcher
-  const [activeSection, setActiveSection] = useState<'profile' | 'subjects' | 'grades' | 'backup'>('profile');
+  const [activeSection, setActiveSection] = useState<'profile' | 'subjects' | 'grades' | 'integrations' | 'backup'>('profile');
 
   // Form states for school & teacher
   const [formSettings, setFormSettings] = useState<SchoolSettings>({ ...settings });
   const [isSavedAlert, setIsSavedAlert] = useState(false);
+
+  useEffect(() => {
+    setFormSettings({ ...settings });
+  }, [settings]);
 
   // Subject Modal state
   const [editingSubject, setEditingSubject] = useState<Partial<Subject> | null>(null);
@@ -249,6 +253,17 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           <span>เกณฑ์คะแนน & ตัดเกรด</span>
         </button>
         <button
+          onClick={() => setActiveSection('integrations')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            activeSection === 'integrations'
+              ? 'bg-[#306385] text-white shadow-sm'
+              : 'text-[#41474d] hover:bg-white/60 hover:text-[#306385]'
+          }`}
+        >
+          <span className="material-symbols-outlined text-lg">extension</span>
+          <span>จัดการหน้าเว็บ & เชื่อมต่อระบบ</span>
+        </button>
+        <button
           onClick={() => setActiveSection('backup')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
             activeSection === 'backup'
@@ -309,6 +324,34 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   className="w-full bg-[#f9f9ff] border border-[#dce2f3] rounded-2xl px-4 py-3 text-sm font-semibold text-[#151c27] focus:outline-none focus:border-[#306385]"
                   placeholder="เช่น ครูน้ำฝน ใจดี"
                   required
+                />
+              </div>
+
+              {/* Teacher Role / Position */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-[#306385]">
+                  ตำแหน่ง / ชั้นที่ปรึกษา (แสดงใต้ชื่อคุณครู)
+                </label>
+                <input
+                  type="text"
+                  value={formSettings.teacherRole || ''}
+                  onChange={e => setFormSettings({ ...formSettings, teacherRole: e.target.value })}
+                  className="w-full bg-[#f9f9ff] border border-[#dce2f3] rounded-2xl px-4 py-3 text-sm font-semibold text-[#151c27] focus:outline-none focus:border-[#306385]"
+                  placeholder="เช่น ครูประจำชั้น ป.1/1 หรือ ครูหัวหน้าสายชั้น"
+                />
+              </div>
+
+              {/* Teacher Email */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-[#306385]">
+                  อีเมลคุณครู (บันทึกเพื่อใช้เชื่อมต่อ Sheets / ส่งออก)
+                </label>
+                <input
+                  type="email"
+                  value={formSettings.teacherEmail || ''}
+                  onChange={e => setFormSettings({ ...formSettings, teacherEmail: e.target.value })}
+                  className="w-full bg-[#f9f9ff] border border-[#dce2f3] rounded-2xl px-4 py-3 text-sm font-semibold text-[#151c27] focus:outline-none focus:border-[#306385]"
+                  placeholder="เช่น teacher@school.ac.th"
                 />
               </div>
 
@@ -798,6 +841,191 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   className="w-full bg-[#ba1a1a] text-white hover:bg-[#93000a] py-2.5 rounded-xl text-xs font-bold transition-colors"
                 >
                   ล้างข้อมูลนักเรียนและคะแนน (เริ่มห้องใหม่)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 5: WEB PAGE MANAGEMENT & INTEGRATIONS */}
+      {activeSection === 'integrations' && (
+        <div className="bg-[#ffffff] rounded-3xl p-6 md:p-8 chibi-shadow space-y-8">
+          <div className="border-b border-[#dce2f3] pb-4">
+            <h3 className="font-display text-xl font-bold text-[#306385] flex items-center gap-2">
+              <span className="material-symbols-outlined text-2xl">tune</span>
+              <span>🎛️ จัดการการแสดงผลหน้าเว็บ & เชื่อมต่อระบบ (AppSheet & GitHub)</span>
+            </h3>
+            <p className="text-xs text-[#41474d] mt-1">
+              ปรับแต่งซ่อน/แสดงเมนูที่ไม่จำเป็นเพื่อไม่ให้หน้าหลักรก หรือกดเข้าใช้งานระบบเชื่อมต่อต่างๆ จากที่นี่ได้โดยตรง
+            </p>
+          </div>
+
+          {/* Part 1: Menu Visibility Controls */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-bold text-[#151c27] flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg text-[#306385]">visibility</span>
+              <span>ตั้งค่าซ่อน/แสดงเมนูนำทางในหน้าหลัก</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Hide GAS Menu Toggle */}
+              <div className="p-4 rounded-2xl bg-[#f9f9ff] border border-[#dce2f3] flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-sm font-bold text-[#151c27]">
+                    ซ่อนเมนู "เชื่อมต่อ Apps Script (Sheets)"
+                  </div>
+                  <div className="text-xs text-[#41474d]">
+                    ย้ายจากเมนูด้านซ้ายมาไว้ในการตั้งค่า เพื่อไม่ให้เมนูหลักรก
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newVal = !settings.hideGasMenu;
+                    onUpdateSettings({ hideGasMenu: newVal });
+                  }}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${
+                    settings.hideGasMenu
+                      ? 'bg-[#306385] text-white shadow-xs'
+                      : 'bg-[#e2e8f8] text-[#41474d]'
+                  }`}
+                >
+                  {settings.hideGasMenu ? '✅ ซ่อนอยู่ (สะอาดตา)' : '👁️ แสดงในแถบซ้าย'}
+                </button>
+              </div>
+
+              {/* Hide GitHub Menu Toggle */}
+              <div className="p-4 rounded-2xl bg-[#f9f9ff] border border-[#dce2f3] flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-sm font-bold text-[#151c27]">
+                    ซ่อนเมนู "นำขึ้น GitHub & ส่งออก"
+                  </div>
+                  <div className="text-xs text-[#41474d]">
+                    ย้ายจากเมนูด้านซ้ายมาไว้ในการตั้งค่า เพื่อไม่ให้เมนูหลักรก
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newVal = !settings.hideGithubMenu;
+                    onUpdateSettings({ hideGithubMenu: newVal });
+                  }}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${
+                    settings.hideGithubMenu
+                      ? 'bg-[#306385] text-white shadow-xs'
+                      : 'bg-[#e2e8f8] text-[#41474d]'
+                  }`}
+                >
+                  {settings.hideGithubMenu ? '✅ ซ่อนอยู่ (สะอาดตา)' : '👁️ แสดงในแถบซ้าย'}
+                </button>
+              </div>
+
+              {/* Show Quick Buttons in Top Navbar Toggle */}
+              <div className="p-4 rounded-2xl bg-[#f9f9ff] border border-[#dce2f3] flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-sm font-bold text-[#151c27]">
+                    แสดงปุ่มทางลัดในแถบด้านบน (Top Navbar)
+                  </div>
+                  <div className="text-xs text-[#41474d]">
+                    แสดงปุ่มสถานะ Sheets และปุ่ม GitHub ด้านบนสุด
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newVal = !settings.showQuickButtonsInNavbar;
+                    onUpdateSettings({ showQuickButtonsInNavbar: newVal });
+                  }}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${
+                    settings.showQuickButtonsInNavbar
+                      ? 'bg-[#0a522f] text-white shadow-xs'
+                      : 'bg-[#e2e8f8] text-[#41474d]'
+                  }`}
+                >
+                  {settings.showQuickButtonsInNavbar ? '✓ แสดงปุ่มด้านบน' : '🔇 ปิด (ให้สะอาดที่สุด)'}
+                </button>
+              </div>
+
+              {/* Hide AI Assistant Menu Toggle */}
+              <div className="p-4 rounded-2xl bg-[#f9f9ff] border border-[#dce2f3] flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-sm font-bold text-[#151c27]">
+                    ซ่อนเมนู "วิเคราะห์ AI น้องชิบิ"
+                  </div>
+                  <div className="text-xs text-[#41474d]">
+                    สำหรับครูที่ต้องการให้หน้าระบบมินิมอลและเรียบง่ายที่สุด
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newVal = !settings.hideAiMenu;
+                    onUpdateSettings({ hideAiMenu: newVal });
+                  }}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${
+                    settings.hideAiMenu
+                      ? 'bg-[#306385] text-white shadow-xs'
+                      : 'bg-[#e2e8f8] text-[#41474d]'
+                  }`}
+                >
+                  {settings.hideAiMenu ? '✅ ซ่อนอยู่' : '👁️ แสดงอยู่'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Part 2: Direct Integrations Access */}
+          <div className="space-y-4 pt-4 border-t border-[#f0f3ff]">
+            <h4 className="text-sm font-bold text-[#151c27] flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg text-[#306385]">hub</span>
+              <span>ศูนย์การเชื่อมต่อและส่งออกข้อมูล (Integrations Hub)</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* AppScript / Sheets Card */}
+              <div className="p-5 rounded-2xl bg-[#ebf7f0] border border-[#93d5a7] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[#0a522f] text-sm flex items-center gap-1.5">
+                    <span className="material-symbols-outlined">table_view</span>
+                    <span>Google Sheets & Apps Script (AppSheet API)</span>
+                  </span>
+                  <span className="bg-white text-[#0a522f] px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-[#93d5a7]">
+                    {gasConfig.webAppUrl ? 'เชื่อมต่อแล้ว' : 'ยังไม่ได้เชื่อมต่อ'}
+                  </span>
+                </div>
+                <p className="text-xs text-[#00210f] leading-relaxed">
+                  เชื่อมต่อฐานข้อมูล Google Sheets แบบเรียลไทม์ผ่าน Apps Script รองรับการซิงค์กับ AppSheet โดยไม่ต้องใช้คีย์ลับ
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('appScriptSync')}
+                  className="w-full bg-[#0a522f] text-white hover:bg-[#1a7f4c] py-2.5 rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                  <span>เปิดหน้าตั้งค่าการเชื่อมต่อ Google Sheets</span>
+                </button>
+              </div>
+
+              {/* GitHub Export Card */}
+              <div className="p-5 rounded-2xl bg-[#f0f3ff] border border-[#a7d8ff] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[#306385] text-sm flex items-center gap-1.5">
+                    <span className="material-symbols-outlined">terminal</span>
+                    <span>นำขึ้น GitHub & ส่งออกซอร์สโค้ด</span>
+                  </span>
+                  <span className="bg-white text-[#306385] px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-[#a7d8ff]">
+                    GitHub Actions ✅
+                  </span>
+                </div>
+                <p className="text-xs text-[#151c27] leading-relaxed">
+                  ดาวน์โหลดไฟล์โปรเจกต์ นำขึ้น GitHub Pages ด้วย GitHub Actions พร้อมคู่มือแก้ปัญหาหน้าขาวสมบูรณ์แบบ
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('githubExport')}
+                  className="w-full bg-[#306385] text-white hover:bg-[#1e4863] py-2.5 rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                  <span>เปิดหน้าคู่มือและส่งออก GitHub</span>
                 </button>
               </div>
             </div>

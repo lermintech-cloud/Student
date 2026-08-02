@@ -341,9 +341,9 @@ async function startServer() {
         });
       }
 
-      // If API Key is present, call Gemini 2.5 Flash
+      // If API Key is present, call Gemini 3.6 Flash
       const ai = new GoogleGenAI({ apiKey });
-      const model = 'gemini-2.5-flash';
+      const model = 'gemini-3.6-flash';
 
       const promptText = `คุณคือ "น้องชิบิ AI" ผู้ช่วยคุณครูประจำโรงเรียนบ้านไร่ ระดับชั้นประถมศึกษา
 กรุณาวิเคราะห์ผลคะแนนของนักเรียนต่อไปนี้ให้อยู่ในรูป JSON ที่ถูกต้อง:

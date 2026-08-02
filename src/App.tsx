@@ -122,6 +122,30 @@ export default function App() {
     persistChanges(updatedStudents, undefined, undefined, updatedGrades);
   };
 
+  const handleBatchAddStudents = (newStudentsList: Partial<Student>[]) => {
+    const defaultAvatar = 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1zrbR5LJ132IT7GHNZ6XJHu81UNgH7_kYAfB8291kvt62_NfAJMZX9jL4aSEHBLZE3OYbqLu5PHHnf6cRJAEt7VvOTyMZqTQA_t0OIHWhxqfph3kgrpx2s9bpfa4Z6Ja1DZ5MgL0D6YpBzqLXyt621PJJrWg9pybZQvwd8Ft6ofEg3lHK8hQYsb8jNSOk9SuIqQlyHy5GueIu1Wkpt2GEzXQjuJ5V7X-gtUBBFG0ShbcUz55CxW5B';
+    const currentCount = students.length;
+    const createdList: Student[] = newStudentsList.map((stu, idx) => ({
+      ...stu,
+      id: 'stu-batch-' + Date.now() + '-' + idx,
+      code: stu.code || (currentCount + idx + 1).toString().padStart(3, '0'),
+      title: stu.title || 'ด.ช.',
+      firstName: stu.firstName || '',
+      lastName: stu.lastName || '',
+      nickname: stu.nickname || 'น้อง' + (stu.firstName || ''),
+      gender: stu.gender || 'male',
+      classLevel: stu.classLevel || 'ป.1/1',
+      room: stu.room || 'ห้อง 101',
+      avatar: stu.avatar || defaultAvatar,
+      status: stu.status || 'active',
+      note: stu.note || '',
+      createdAt: new Date().toISOString().slice(0, 10)
+    }));
+    const updatedList = [...createdList, ...students];
+    setStudents(updatedList);
+    persistChanges(updatedList);
+  };
+
   const handleSaveAssignment = (assign: Partial<Assignment>) => {
     let updatedList: Assignment[];
     if (assign.id) {
@@ -323,6 +347,7 @@ export default function App() {
             grades={grades}
             onSaveStudent={handleSaveStudent}
             onDeleteStudent={handleDeleteStudent}
+            onBatchAddStudents={handleBatchAddStudents}
           />
         )}
 

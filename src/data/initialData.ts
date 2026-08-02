@@ -3,10 +3,16 @@ import { Student, Subject, Assignment, GradeEntry, SchoolSettings, AppScriptConf
 export const initialSchoolSettings: SchoolSettings = {
   schoolName: 'โรงเรียนบ้านไร่',
   teacherName: 'ครูน้ำฝน ใจดี',
+  teacherRole: 'ครูประจำชั้น ป.1/1',
+  teacherEmail: 'teacher.namfon@school.ac.th',
   academicYear: '2568',
   semester: '1',
   mascotUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDDeHsRpHO5LYMxtQsF3EdfPvXmGmxIPoy1yXJs6g9iiyLqCXYK2Xt8q1mAgndGgZsqzcKNF5sC3dVXIX9OXN_BL8oqfrcv8wYVt8PlCzztwQiGgqVjNybc6Z4AedSuKEjO7-_14Fbn5Du4Ln7DcUArkbl4QrsYaNA98_XgOAZOHH1JXGhqMNiyHux-77jNqqDmRqXs3xC27G8hNz2nrQe280JACrRS9gaEu8VdIJJvMDVz_NzzLUTf',
-  teacherAvatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAL5t_MWvFniyYyAgPM7lL7RtqInuWSeTJZVqgChQ5YaPMsKWxH2Az8gcdATP51fZgMNvD4Tzx-ynYWFP0D2u4HSCqiUn_dAgRmSFusmq56qf39j7fYZHvuYVzWZG0f-LmMx4UYLky8Wm6NGFfLRej_sOHb-oaN0_gCMJbJjQOUTU6P6YbUuM7H6cGeHF7CEONozlIeC-kTjGEW1dLI2G6jVMVSOzpV69HLyP4DOO-sXxrgByy-ZpvH'
+  teacherAvatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAL5t_MWvFniyYyAgPM7lL7RtqInuWSeTJZVqgChQ5YaPMsKWxH2Az8gcdATP51fZgMNvD4Tzx-ynYWFP0D2u4HSCqiUn_dAgRmSFusmq56qf39j7fYZHvuYVzWZG0f-LmMx4UYLky8Wm6NGFfLRej_sOHb-oaN0_gCMJbJjQOUTU6P6YbUuM7H6cGeHF7CEONozlIeC-kTjGEW1dLI2G6jVMVSOzpV69HLyP4DOO-sXxrgByy-ZpvH',
+  hideGasMenu: true,
+  hideGithubMenu: true,
+  hideAiMenu: false,
+  showQuickButtonsInNavbar: false
 };
 
 export const initialAppScriptConfig: AppScriptConfig = {

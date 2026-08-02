@@ -57,10 +57,16 @@ export interface AppScriptConfig {
 export interface SchoolSettings {
   schoolName: string;
   teacherName: string;
+  teacherRole?: string;
+  teacherEmail?: string;
   academicYear: string;
   semester: string;
   mascotUrl: string;
   teacherAvatarUrl: string;
+  hideGasMenu?: boolean;
+  hideGithubMenu?: boolean;
+  hideAiMenu?: boolean;
+  showQuickButtonsInNavbar?: boolean;
 }
 
 export interface AIAnalysisResult {

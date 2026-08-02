@@ -20,16 +20,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsMobileMenuOpen,
   onResetData
 }) => {
-  const navItems: { id: ActiveTab; label: string; icon: string; badge?: string }[] = [
+  const navItems: { id: ActiveTab; label: string; icon: string; badge?: string; hidden?: boolean }[] = [
     { id: 'dashboard', label: 'แดชบอร์ด', icon: 'dashboard' },
     { id: 'students', label: 'นักเรียน', icon: 'school' },
     { id: 'grading', label: 'การให้คะแนน', icon: 'grade' },
     { id: 'summary', label: 'สรุปผล', icon: 'grid_on' },
-    { id: 'appScriptSync', label: 'เชื่อมต่อ Apps Script', icon: 'cloud_sync', badge: 'Sheets' },
-    { id: 'githubExport', label: 'นำขึ้น GitHub & ส่งออก', icon: 'terminal', badge: 'Git' },
-    { id: 'aiAssistant', label: 'วิเคราะห์ AI น้องชิบิ', icon: 'auto_awesome', badge: 'AI' },
+    { id: 'appScriptSync', label: 'เชื่อมต่อ Apps Script', icon: 'cloud_sync', badge: 'Sheets', hidden: settings.hideGasMenu },
+    { id: 'githubExport', label: 'นำขึ้น GitHub & ส่งออก', icon: 'terminal', badge: 'Git', hidden: settings.hideGithubMenu },
+    { id: 'aiAssistant', label: 'วิเคราะห์ AI น้องชิบิ', icon: 'auto_awesome', badge: 'AI', hidden: settings.hideAiMenu },
     { id: 'settings', label: 'การตั้งค่าระบบ', icon: 'settings_suggest', badge: 'ตั้งค่า' }
-  ];
+  ].filter(item => !item.hidden);
 
   const handleNavClick = (tab: ActiveTab) => {
     setActiveTab(tab);
@@ -70,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <h1 className="font-display text-2xl text-[#306385] text-center font-bold">
             {settings.schoolName}
           </h1>
-          <p className="text-xs text-[#41474d] mt-0.5">ระบบบันทึกคะแนน & AI สไตล์ Chibi</p>
+          <p className="text-xs text-[#41474d] mt-0.5">{settings.teacherRole || 'ระบบบันทึกคะแนน & AI สไตล์ Chibi'}</p>
         </div>
 
         {/* Navigation list */}

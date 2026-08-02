@@ -61,41 +61,47 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Right actions */}
       <div className="flex items-center gap-2 md:gap-3">
-        {/* Google Apps Script status badge */}
-        <button
-          onClick={() => setActiveTab('appScriptSync')}
-          className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all chibi-button ${
-            isGasConnected
-              ? 'bg-[#ebf7f0] text-[#0a522f] border border-[#93d5a7]'
-              : 'bg-[#fff9e6] text-[#996300] border border-[#f4b6c1]'
-          }`}
-          title="ตั้งค่าเชื่อมต่อ Google Apps Script / Sheets"
-        >
-          <span className="material-symbols-outlined text-sm">
-            {isGasConnected ? 'cloud_done' : 'cloud_off'}
-          </span>
-          <span>{isGasConnected ? 'Sheets เชื่อมต่อแล้ว' : 'ยังไม่เชื่อม Apps Script'}</span>
-        </button>
+        {/* Google Apps Script status badge (แสดงเมื่อเปิดในตั้งค่า) */}
+        {settings.showQuickButtonsInNavbar && (
+          <button
+            onClick={() => setActiveTab('appScriptSync')}
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all chibi-button ${
+              isGasConnected
+                ? 'bg-[#ebf7f0] text-[#0a522f] border border-[#93d5a7]'
+                : 'bg-[#fff9e6] text-[#996300] border border-[#f4b6c1]'
+            }`}
+            title="ตั้งค่าเชื่อมต่อ Google Apps Script / Sheets"
+          >
+            <span className="material-symbols-outlined text-sm">
+              {isGasConnected ? 'cloud_done' : 'cloud_off'}
+            </span>
+            <span>{isGasConnected ? 'Sheets เชื่อมต่อแล้ว' : 'ยังไม่เชื่อม Apps Script'}</span>
+          </button>
+        )}
 
-        {/* AI Assistant button */}
-        <button
-          onClick={onOpenAiAssistant}
-          className="flex items-center gap-1.5 bg-[#fdbec9] text-[#330f19] hover:bg-[#f4b6c1] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm chibi-button"
-          title="น้องชิบิ AI ผู้ช่วยครู"
-        >
-          <span className="material-symbols-outlined text-base">auto_awesome</span>
-          <span className="hidden md:inline">น้องชิบิ AI</span>
-        </button>
+        {/* AI Assistant button (แสดงเมื่อไม่ได้ซ่อนในตั้งค่า) */}
+        {!settings.hideAiMenu && (
+          <button
+            onClick={onOpenAiAssistant}
+            className="flex items-center gap-1.5 bg-[#fdbec9] text-[#330f19] hover:bg-[#f4b6c1] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm chibi-button"
+            title="น้องชิบิ AI ผู้ช่วยครู"
+          >
+            <span className="material-symbols-outlined text-base">auto_awesome</span>
+            <span className="hidden md:inline">น้องชิบิ AI</span>
+          </button>
+        )}
 
-        {/* GitHub Export Quick button */}
-        <button
-          onClick={() => setActiveTab('githubExport')}
-          className="hidden lg:flex items-center gap-1 bg-[#f0f3ff] text-[#306385] hover:bg-[#e2e8f8] px-3 py-1.5 rounded-full text-xs font-bold chibi-button border border-[#c1c7ce]/50"
-          title="ส่งออกขึ้น GitHub & ซอร์สโค้ด"
-        >
-          <span className="material-symbols-outlined text-sm">code</span>
-          <span>GitHub</span>
-        </button>
+        {/* GitHub Export Quick button (แสดงเมื่อเปิดในตั้งค่า) */}
+        {settings.showQuickButtonsInNavbar && (
+          <button
+            onClick={() => setActiveTab('githubExport')}
+            className="hidden lg:flex items-center gap-1 bg-[#f0f3ff] text-[#306385] hover:bg-[#e2e8f8] px-3 py-1.5 rounded-full text-xs font-bold chibi-button border border-[#c1c7ce]/50"
+            title="ส่งออกขึ้น GitHub & ซอร์สโค้ด"
+          >
+            <span className="material-symbols-outlined text-sm">code</span>
+            <span>GitHub</span>
+          </button>
+        )}
 
         {/* Profile Avatar (Click to go to Settings) */}
         <button
@@ -112,7 +118,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="text-xs font-bold text-[#151c27] leading-tight">
               {settings.teacherName}
             </div>
-            <div className="text-[10px] text-[#306385] font-semibold">ตั้งค่าระบบ ⚙️</div>
+            <div className="text-[10px] text-[#306385] font-semibold">
+              {settings.teacherRole || 'ตั้งค่าระบบ ⚙️'}
+            </div>
           </div>
         </button>
       </div>
