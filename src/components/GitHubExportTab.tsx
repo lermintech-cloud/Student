@@ -73,6 +73,16 @@ npm run dev
 # 3. เซิร์ฟเวอร์จะทำงานที่พอร์ต 3000 -> เปิดเบราว์เซอร์ไปที่ http://localhost:3000
 \`\`\`
 
+## 🌐 วิธีแก้ปัญหา "หน้าขาว (Blank White Screen)" เมื่อนำขึ้น GitHub Pages
+- **สาเหตุ:** เกิดจาก Base URL หรือต้องใช้คำสั่ง \`npm run build\` ก่อนเพราะเบราว์เซอร์ไม่สามารถเปิดไฟล์ \`.tsx\` ได้โดยตรง (ตอนนี้ใน \`vite.config.ts\` ได้ปรับ \`base: './'\` ให้เรียบร้อยแล้ว)
+- **วิธีที่ 1 (GitHub Pages + GitHub Actions):**
+  1. เข้าหน้า Repository บน GitHub -> ไปที่แท็บ **Settings** > เมนู **Pages** ด้านซ้าย
+  2. ตรงหัวข้อ **Build and deployment** > **Source** ให้เปลี่ยนจาก Deploy from a branch เป็น **"GitHub Actions"**
+  3. ระบบจะอ่านไฟล์ \`.github/workflows/deploy.yml\` ที่สร้างเตรียมไว้ให้ แล้วทำการ Build ให้อัตโนมัติ (รอ 1-2 นาที หน้าเว็บจะพร้อมใช้งานโดยไม่ขาว)
+- **วิธีที่ 2 (Vercel / Netlify - แนะนำ ง่ายและเร็วที่สุด):**
+  1. เข้าเว็บ vercel.com หรือ netlify.com ล็อกอินด้วย GitHub
+  2. กด **Add New Project** -> เลือก Repository นี้ -> กด **Deploy** ใช้งานได้ทันทีใน 30 วินาที!
+
 ## 📁 โครงสร้างโปรเจกต์ (Project Architecture)
 - \`server.ts\` : เซิร์ฟเวอร์ Express + Vite Middleware + Google Apps Script Proxy + Gemini AI endpoint
 - \`src/types.ts\` : โครงสร้างข้อมูลสถิติ นักเรียน งาน และการให้คะแนน
@@ -158,6 +168,37 @@ npm run dev
             <span className="material-symbols-outlined text-base">save</span>
             <span>ดาวน์โหลดไฟล์สำรองฐานข้อมูล (JSON)</span>
           </button>
+        </div>
+      </div>
+
+      {/* GitHub Pages White Screen Troubleshooting Card */}
+      <div className="bg-[#fff9fa] rounded-3xl p-6 md:p-8 chibi-shadow border-2 border-[#fdbec9] space-y-4">
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-2xl text-[#ba1a1a]">help</span>
+          <h3 className="font-display text-xl font-bold text-[#93000a]">
+            แก้ปัญหา "เปิดเว็บที่อัปโหลดขึ้น GitHub แล้วหน้าขาว (Blank White Screen)"
+          </h3>
+        </div>
+        <p className="text-sm text-[#41474d] leading-relaxed">
+          สาเหตุหลักที่เปิดหน้าเว็บแล้วขาวว่างเปล่า เกิดจาก <strong className="text-[#306385]">การตั้งค่าที่อยู่ไฟล์ (Base Path) ไม่ตรงกับซับโดเมนของ GitHub Pages</strong> หรือไม่ได้ผ่านขั้นตอนการ Build (เนื่องจากเบราว์เซอร์ไม่สามารถรันไฟล์ TypeScript .tsx ได้โดยตรง) — ตอนนี้ระบบได้ปรับค่า <code>base: './'</code> ในไฟล์ <code>vite.config.ts</code> ให้เรียบร้อยแล้วค่ะ!
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium pt-2">
+          <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#fdbec9] space-y-2">
+            <div className="font-extrabold text-[#93000a] text-sm flex items-center gap-1.5">
+              <span>🌸 วิธีที่ 1: เปิดใช้ GitHub Pages ด้วย GitHub Actions (แนะนำ)</span>
+            </div>
+            <p className="text-[#41474d] leading-relaxed">
+              เราได้เพิ่มไฟล์อัตโนมัติ <code>.github/workflows/deploy.yml</code> ไว้ให้แล้ว เมื่อคุณครู Push โค้ดขึ้น GitHub ให้ไปที่เมนู <strong className="text-[#306385]">Settings &gt; Pages</strong> ใน Repository ของคุณครู &gt; ตรงหัวข้อ <strong>Build and deployment (Source)</strong> ให้เลือกเป็น <strong className="text-[#2a6a45]">"GitHub Actions"</strong> จากนั้นระบบจะ Build ให้เสร็จใน 1-2 นาที และหน้าเว็บจะไม่ขาวอีกต่อไป!
+            </p>
+          </div>
+          <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#aef2c2] space-y-2">
+            <div className="font-extrabold text-[#0a522f] text-sm flex items-center gap-1.5">
+              <span>🚀 วิธีที่ 2: ฝากเว็บฟรีบน Vercel หรือ Netlify (ง่ายสุด ไม่ต้องตั้งค่า)</span>
+            </div>
+            <p className="text-[#41474d] leading-relaxed">
+              เพียงเข้าไปที่ <strong className="text-[#306385]">vercel.com</strong> หรือ <strong className="text-[#306385]">netlify.com</strong> เลือกเข้าสู่ระบบด้วย GitHub แล้วกด <strong>Add New Project &gt; Import</strong> เลือกชื่อ Repository นี้ แล้วกด <strong>Deploy</strong> ได้เลย ระบบรองรับ Vite + React อัตโนมัติใน 30 วินาที ได้เว็บใช้งานจริงทันทีค่ะ!
+            </p>
+          </div>
         </div>
       </div>
 
