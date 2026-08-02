@@ -49,6 +49,14 @@ function setupChibiGradebookSheets() {
     styleHeader(grdSheet, "#c9e6ff", "#001e2f");
   }
 
+  // 5. ชีต Settings (การตั้งค่าระบบและโรงเรียน)
+  let setSheet = ss.getSheetByName("Settings");
+  if (!setSheet) {
+    setSheet = ss.insertSheet("Settings");
+    setSheet.appendRow(["Key", "Value", "UpdatedAt"]);
+    styleHeader(setSheet, "#ffe9c9", "#331f00");
+  }
+
   return "ตั้งค่าชีตเรียบร้อยแล้ว!";
 }
 
@@ -74,7 +82,8 @@ function doGet(e) {
     students: getSheetDataAsObjects(ss.getSheetByName("Students")),
     subjects: getSheetDataAsObjects(ss.getSheetByName("Subjects")),
     assignments: getSheetDataAsObjects(ss.getSheetByName("Assignments")),
-    grades: getSheetDataAsObjects(ss.getSheetByName("Grades"))
+    grades: getSheetDataAsObjects(ss.getSheetByName("Grades")),
+    settings: getSettingsFromSheet(ss.getSheetByName("Settings"))
   };
 
   return ContentService.createTextOutput(JSON.stringify(data))
@@ -104,6 +113,7 @@ function doPost(e) {
       if (payload.grades) saveObjectsToSheet(ss.getSheetByName("Grades"), payload.grades, [
         "id", "studentId", "assignmentId", "score", "isCompleted", "note", "updatedAt"
       ]);
+      if (payload.settings) saveSettingsToSheet(ss.getSheetByName("Settings"), payload.settings);
     }
 
     return ContentService.createTextOutput(JSON.stringify({
@@ -156,6 +166,44 @@ function saveObjectsToSheet(sheet, items, keys) {
 
   if (rows.length > 0) {
     sheet.getRange(2, 1, rows.length, keys.length).setValues(rows);
+  }
+}
+
+function getSettingsFromSheet(sheet) {
+  if (!sheet) return null;
+  const values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return null;
+  const result = {};
+  for (let i = 1; i < values.length; i++) {
+    const key = values[i][0];
+    const valStr = values[i][1];
+    if (key && valStr !== undefined) {
+      try {
+        result[key] = JSON.parse(valStr);
+      } catch(e) {
+        result[key] = valStr;
+      }
+    }
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+function saveSettingsToSheet(sheet, settingsObj) {
+  if (!sheet || !settingsObj) return;
+  sheet.clearContents();
+  sheet.appendRow(["Key", "Value", "UpdatedAt"]);
+  styleHeader(sheet, "#ffe9c9", "#331f00");
+  const now = new Date().toISOString();
+  const rows = [];
+  for (const key in settingsObj) {
+    let val = settingsObj[key];
+    if (typeof val === 'object') {
+      val = JSON.stringify(val);
+    }
+    rows.push([key, val, now]);
+  }
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, 3).setValues(rows);
   }
 }
 `;

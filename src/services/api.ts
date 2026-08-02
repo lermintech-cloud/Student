@@ -147,7 +147,7 @@ async function fallbackGasDirectSync(
             subjects: Array.isArray(result.subjects) && result.subjects.length > 0 ? result.subjects : (currentData?.subjects || []),
             assignments: Array.isArray(result.assignments) && result.assignments.length > 0 ? result.assignments : (currentData?.assignments || []),
             grades: Array.isArray(result.grades) && result.grades.length > 0 ? result.grades : (currentData?.grades || []),
-            settings: currentData?.settings || { ...initialSchoolSettings },
+            settings: result.settings && typeof result.settings === 'object' ? { ...initialSchoolSettings, ...result.settings } : (currentData?.settings || { ...initialSchoolSettings }),
             gasConfig: {
               ...(currentData?.gasConfig || { ...initialAppScriptConfig }),
               webAppUrl,
@@ -173,7 +173,8 @@ async function fallbackGasDirectSync(
         students: initialStudents,
         subjects: initialSubjects,
         assignments: initialAssignments,
-        grades: initialGrades
+        grades: initialGrades,
+        settings: initialSchoolSettings
       };
       const payload = {
         action: 'push',
@@ -181,7 +182,8 @@ async function fallbackGasDirectSync(
         students: payloadData.students,
         subjects: payloadData.subjects,
         assignments: payloadData.assignments,
-        grades: payloadData.grades
+        grades: payloadData.grades,
+        settings: payloadData.settings || initialSchoolSettings
       };
 
       try {

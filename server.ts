@@ -233,6 +233,9 @@ async function startServer() {
           if (Array.isArray(result.grades) && result.grades.length > 0) {
             dbState.grades = result.grades;
           }
+          if (result.settings && typeof result.settings === 'object') {
+            dbState.settings = { ...dbState.settings, ...result.settings };
+          }
           dbState.gasConfig.lastSyncedAt = new Date().toISOString();
           saveDb();
           return res.json({
@@ -256,7 +259,8 @@ async function startServer() {
           students: sourceData.students || dbState.students,
           subjects: sourceData.subjects || dbState.subjects,
           assignments: sourceData.assignments || dbState.assignments,
-          grades: sourceData.grades || dbState.grades
+          grades: sourceData.grades || dbState.grades,
+          settings: sourceData.settings || dbState.settings
         };
 
         const response = await fetch(targetUrl, {
