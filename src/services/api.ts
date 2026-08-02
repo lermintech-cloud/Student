@@ -29,15 +29,14 @@ export interface FullDbState {
 
 export async function fetchDatabase(): Promise<FullDbState> {
   try {
-    const res = await fetch(`${API_BASE}/db`);
-    if (!res.ok) throw new Error('Failed to fetch DB');
+    const res = await fetch(`${API_BASE}/db`, {
+      method: 'GET',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    if (!res.ok) throw new Error('Failed to fetch centralized server database');
     return await res.json();
   } catch (err) {
-    console.warn('Backend offline or fallback to localStorage:', err);
-    const saved = localStorage.getItem('chibi_gradebook_db');
-    if (saved) {
-      return JSON.parse(saved);
-    }
+    console.warn('Centralized server database fetch error, returning initial fallback state:', err);
     return {
       students: [...initialStudents],
       subjects: [...initialSubjects],
@@ -51,19 +50,17 @@ export async function fetchDatabase(): Promise<FullDbState> {
 
 export async function saveDatabase(db: FullDbState): Promise<void> {
   try {
-    localStorage.setItem('chibi_gradebook_db', JSON.stringify(db));
     await fetch(`${API_BASE}/db`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(db)
     });
   } catch (err) {
-    console.warn('Could not save to backend, saved to localStorage:', err);
+    console.warn('Could not save to Centralized Server Database (/api/db):', err);
   }
 }
 
 export async function resetDatabase(): Promise<FullDbState> {
-  localStorage.removeItem('chibi_gradebook_db');
   try {
     const res = await fetch(`${API_BASE}/db/reset`, { method: 'POST' });
     if (res.ok) {
@@ -71,7 +68,7 @@ export async function resetDatabase(): Promise<FullDbState> {
       return data.db;
     }
   } catch (err) {
-    console.warn('Reset local fallback:', err);
+    console.warn('Reset centralized database error:', err);
   }
   return {
     students: [...initialStudents],

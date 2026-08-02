@@ -813,15 +813,15 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               {/* Auto Save & Security Info */}
               <div className="p-5 rounded-2xl bg-[#ebf7f0] border border-[#93d5a7] space-y-3">
                 <div className="font-bold text-sm text-[#0a522f] flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-base">verified_user</span>
-                  <span>ระบบบันทึกข้อมูลอัตโนมัติ (Auto-Save Active)</span>
+                  <span className="material-symbols-outlined text-base">cloud_sync</span>
+                  <span>ระบบบันทึกข้อมูลส่วนกลางอัตโนมัติ (Centralized Server DB)</span>
                 </div>
                 <p className="text-xs text-[#00210f] leading-relaxed">
-                  ข้อมูลการให้คะแนนและรายชื่อนักเรียนจะถูกบันทึกไว้ในเบราว์เซอร์อัตโนมัติทุกครั้งที่มีการแก้ไข สามารถส่งออกสำรองเป็นไฟล์ JSON หรือ Excel ได้ทุกเมื่อค่ะ
+                  ข้อมูลทั้งหมด (นักเรียน คะแนน รายวิชา และ URL ของ Google Apps Script) จะถูกบันทึกที่เซิร์ฟเวอร์กลางอัตโนมัติ ใช้งานข้ามอุปกรณ์และเชื่อมต่อ Google Sheets ร่วมกันได้ทันทีค่ะ
                 </p>
                 <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#0a522f] pt-1">
                   <span className="material-symbols-outlined text-sm">check_circle</span>
-                  <span>ปลอดภัย ข้อมูลไม่สูญหาย</span>
+                  <span>ซิงค์ข้ามอุปกรณ์ทันที ไม่ต้องตั้งค่าซ้ำ</span>
                 </div>
               </div>
 
