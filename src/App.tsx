@@ -48,6 +48,20 @@ export default function App() {
   const [isNewAssignModalOpen, setIsNewAssignModalOpen] = useState(false);
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{
+    text: string;
+    type?: 'success' | 'info' | 'warning';
+  } | null>(null);
+
+  const showToast = (
+    text: string,
+    type: 'success' | 'info' | 'warning' = 'success'
+  ) => {
+    setToastMessage({ text, type });
+    setTimeout(() => {
+      setToastMessage(prev => (prev?.text === text ? null : prev));
+    }, 3200);
+  };
 
   // Load database on mount
   useEffect(() => {
@@ -75,7 +89,9 @@ export default function App() {
     newAssignments?: Assignment[],
     newGrades?: GradeEntry[],
     newSettings?: SchoolSettings,
-    newGasConfig?: AppScriptConfig
+    newGasConfig?: AppScriptConfig,
+    toastText?: string,
+    toastType: 'success' | 'info' | 'warning' = 'success'
   ) => {
     const updatedDb: FullDbState = {
       students: newStudents || students,
@@ -86,10 +102,14 @@ export default function App() {
       gasConfig: newGasConfig || gasConfig
     };
     saveDatabase(updatedDb);
+    if (toastText) {
+      showToast(toastText, toastType);
+    }
   };
 
   const handleSaveStudent = (stu: Partial<Student>) => {
     let updatedList: Student[];
+    const isEdit = Boolean(stu.id);
     if (stu.id) {
       updatedList = students.map(s => (s.id === stu.id ? { ...s, ...stu } : s));
     } else {
@@ -111,7 +131,16 @@ export default function App() {
       updatedList = [newStu, ...students];
     }
     setStudents(updatedList);
-    persistChanges(updatedList);
+    persistChanges(
+      updatedList,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      isEdit ? `✏️ อัปเดตข้อมูลคุณครู/นักเรียน "${stu.firstName || ''}" เรียบร้อยแล้วค่ะ` : `🎉 เพิ่มนักเรียนใหม่ "${stu.firstName || ''}" เรียบร้อยแล้วค่ะ`,
+      'success'
+    );
   };
 
   const handleDeleteStudent = (id: string) => {
@@ -119,7 +148,16 @@ export default function App() {
     const updatedGrades = grades.filter(g => g.studentId !== id);
     setStudents(updatedStudents);
     setGrades(updatedGrades);
-    persistChanges(updatedStudents, undefined, undefined, updatedGrades);
+    persistChanges(
+      updatedStudents,
+      undefined,
+      undefined,
+      updatedGrades,
+      undefined,
+      undefined,
+      '🗑️ ลบข้อมูลนักเรียนออกจากระบบแล้วค่ะ',
+      'info'
+    );
   };
 
   const handleBatchAddStudents = (newStudentsList: Partial<Student>[]) => {
@@ -143,11 +181,21 @@ export default function App() {
     }));
     const updatedList = [...createdList, ...students];
     setStudents(updatedList);
-    persistChanges(updatedList);
+    persistChanges(
+      updatedList,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      `✨ นำเข้ารายชื่อนักเรียนใหม่ ${createdList.length} คน เรียบร้อยแล้วค่ะ!`,
+      'success'
+    );
   };
 
   const handleSaveAssignment = (assign: Partial<Assignment>) => {
     let updatedList: Assignment[];
+    const isEdit = Boolean(assign.id);
     if (assign.id) {
       updatedList = assignments.map(a => (a.id === assign.id ? { ...a, ...assign } : a));
     } else {
@@ -167,7 +215,16 @@ export default function App() {
       setActiveTab('grading');
     }
     setAssignments(updatedList);
-    persistChanges(undefined, undefined, updatedList);
+    persistChanges(
+      undefined,
+      undefined,
+      updatedList,
+      undefined,
+      undefined,
+      undefined,
+      isEdit ? `📝 บันทึกการแก้ไขงาน "${assign.title || ''}" แล้วค่ะ` : `📌 มอบหมายงานใหม่ "${assign.title || 'งานใหม่'}" เรียบร้อยแล้วค่ะ`,
+      'success'
+    );
   };
 
   const handleDeleteAssignment = (id: string) => {
@@ -178,12 +235,30 @@ export default function App() {
     if (selectedAssignmentId === id && updatedAssign.length > 0) {
       setSelectedAssignmentId(updatedAssign[0].id);
     }
-    persistChanges(undefined, undefined, updatedAssign, updatedGrades);
+    persistChanges(
+      undefined,
+      undefined,
+      updatedAssign,
+      updatedGrades,
+      undefined,
+      undefined,
+      '🗑️ ลบชิ้นงานและคะแนนที่เกี่ยวข้องแล้วค่ะ',
+      'info'
+    );
   };
 
   const handleSaveGrades = (newGrades: GradeEntry[]) => {
     setGrades(newGrades);
-    persistChanges(undefined, undefined, undefined, newGrades);
+    persistChanges(
+      undefined,
+      undefined,
+      undefined,
+      newGrades,
+      undefined,
+      undefined,
+      '💾 บันทึกคะแนนเรียบร้อยแล้วค่ะ (บันทึกอัตโนมัติ)',
+      'success'
+    );
   };
 
   const handleGiveAllFullScore = () => {
@@ -218,13 +293,31 @@ export default function App() {
     });
 
     setGrades(updatedGrades);
-    persistChanges(undefined, undefined, undefined, updatedGrades);
+    persistChanges(
+      undefined,
+      undefined,
+      undefined,
+      updatedGrades,
+      undefined,
+      undefined,
+      '⭐ ให้คะแนนเต็มทุกคนเรียบร้อยแล้วค่ะ!',
+      'success'
+    );
   };
 
   const handleUpdateGasConfig = (config: Partial<AppScriptConfig>) => {
     const updated = { ...gasConfig, ...config };
     setGasConfig(updated);
-    persistChanges(undefined, undefined, undefined, undefined, undefined, updated);
+    persistChanges(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      updated,
+      '🔗 บันทึกการเชื่อมต่อ Google Sheets / Apps Script แล้วค่ะ',
+      'success'
+    );
   };
 
   const handleDataPulledFromGas = (db: FullDbState) => {
@@ -234,10 +327,12 @@ export default function App() {
     if (db.grades) setGrades(db.grades);
     if (db.settings) setSettings(db.settings);
     if (db.gasConfig) setGasConfig(db.gasConfig);
+    showToast('📥 ซิงค์ข้อมูลและอัปเดตตารางคะแนนเรียบร้อยแล้วค่ะ!', 'success');
   };
 
   const handleSaveSubject = (sub: Partial<Subject>) => {
     let updatedList: Subject[];
+    const isEdit = Boolean(sub.id);
     if (sub.id) {
       updatedList = subjects.map(s => (s.id === sub.id ? { ...s, ...sub } : s));
     } else {
@@ -253,19 +348,46 @@ export default function App() {
       updatedList = [...subjects, newSub];
     }
     setSubjects(updatedList);
-    persistChanges(undefined, updatedList);
+    persistChanges(
+      undefined,
+      updatedList,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      isEdit ? `✏️ อัปเดตรายวิชา "${sub.name || ''}" เรียบร้อยแล้วค่ะ` : `🎉 เพิ่มรายวิชา "${sub.name || ''}" เรียบร้อยแล้วค่ะ`,
+      'success'
+    );
   };
 
   const handleDeleteSubject = (id: string) => {
     const updatedSubjects = subjects.filter(s => s.id !== id);
     setSubjects(updatedSubjects);
-    persistChanges(undefined, updatedSubjects);
+    persistChanges(
+      undefined,
+      updatedSubjects,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      '🗑️ ลบรายวิชาออกจากระบบแล้วค่ะ',
+      'info'
+    );
   };
 
   const handleUpdateSettings = (newSettings: Partial<SchoolSettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
-    persistChanges(undefined, undefined, undefined, undefined, updated);
+    persistChanges(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      updated,
+      undefined,
+      '⚙️ บันทึกการตั้งค่าระบบเรียบร้อยแล้วค่ะ',
+      'success'
+    );
   };
 
   const handleClearAllData = () => {
@@ -280,8 +402,16 @@ export default function App() {
       setStudents(emptyStudents);
       setAssignments(emptyAssignments);
       setGrades(emptyGrades);
-      persistChanges(emptyStudents, undefined, emptyAssignments, emptyGrades);
-      alert('ล้างข้อมูลนักเรียนและคะแนนเรียบร้อยแล้ว เตรียมพร้อมสำหรับห้องเรียนใหม่');
+      persistChanges(
+        emptyStudents,
+        undefined,
+        emptyAssignments,
+        emptyGrades,
+        undefined,
+        undefined,
+        '✨ ล้างข้อมูลนักเรียนและคะแนนเรียบร้อยแล้ว พร้อมสำหรับห้องเรียนใหม่ค่ะ',
+        'success'
+      );
     }
   };
 
@@ -447,6 +577,46 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* CENTRAL FLOATING STATUS / TOAST NOTIFICATION (TOP-CENTER OF SCREEN) */}
+      {toastMessage && (
+        <div
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-3.5 rounded-full bg-white border-2 shadow-[0_12px_36px_rgba(0,0,0,0.18)] animate-slide-down text-sm font-extrabold max-w-lg w-auto pointer-events-auto ${
+            toastMessage.type === 'info'
+              ? 'border-[#306385] text-[#001e2f]'
+              : toastMessage.type === 'warning'
+              ? 'border-[#996300] text-[#4d3a00]'
+              : 'border-[#0a522f] text-[#0a522f]'
+          }`}
+        >
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
+              toastMessage.type === 'info'
+                ? 'bg-[#e2e8f8] border-[#a7d8ff]'
+                : toastMessage.type === 'warning'
+                ? 'bg-[#fff0cb] border-[#ffe299]'
+                : 'bg-[#ebf7f0] border-[#93d5a7]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">
+              {toastMessage.type === 'info'
+                ? 'info'
+                : toastMessage.type === 'warning'
+                ? 'warning'
+                : 'check_circle'}
+            </span>
+          </div>
+          <span className="truncate">{toastMessage.text}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-[#71787e] hover:text-[#151c27] transition-colors flex items-center shrink-0"
+            title="ปิดหน้าต่างแจ้งเตือน"
+          >
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      )}
 
       {/* New Assignment Modal */}
       <NewAssignmentModal

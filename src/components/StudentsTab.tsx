@@ -17,9 +17,26 @@ function parseStudentLines(
   defaultRoom: string,
   existingCount: number
 ): Partial<Student>[] {
-  const lines = text.split('\n');
+  const lines = text.split(/\r?\n/);
   const results: Partial<Student>[] = [];
-  const titles = ['ด.ช.', 'ด.ญ.', 'ด.ช', 'ด.ญ', 'นาย', 'นางสาว', 'น.ส.', 'น.ส'];
+
+  const TITLE_MAP: { [key: string]: { title: string; gender: 'male' | 'female' } } = {
+    'เด็กชาย': { title: 'ด.ช.', gender: 'male' },
+    'เด็กหญิง': { title: 'ด.ญ.', gender: 'female' },
+    'ด.ช.': { title: 'ด.ช.', gender: 'male' },
+    'ด.ญ.': { title: 'ด.ญ.', gender: 'female' },
+    'ด.ช': { title: 'ด.ช.', gender: 'male' },
+    'ด.ญ': { title: 'ด.ญ.', gender: 'female' },
+    'นาย': { title: 'นาย', gender: 'male' },
+    'นางสาว': { title: 'นางสาว', gender: 'female' },
+    'น.ส.': { title: 'น.ส.', gender: 'female' },
+    'น.ส': { title: 'น.ส.', gender: 'female' },
+    'Master': { title: 'Master', gender: 'male' },
+    'Miss': { title: 'Miss', gender: 'female' },
+    'Mr.': { title: 'Mr.', gender: 'male' },
+  };
+
+  const titleKeys = Object.keys(TITLE_MAP).sort((a, b) => b.length - a.length);
 
   let idxNumber = 1;
   for (const rawLine of lines) {
@@ -27,80 +44,118 @@ function parseStudentLines(
     if (
       !trimmed ||
       trimmed.startsWith('#') ||
+      trimmed.includes('คำนำหน้า') ||
+      trimmed.includes('ชื่อ-สกุล') ||
+      trimmed.includes('ชื่อจริง') ||
+      trimmed.includes('นามสกุล') ||
       trimmed.startsWith('รหัส') ||
       trimmed.startsWith('Code') ||
-      trimmed.startsWith('ลำดับ')
+      trimmed.startsWith('ลำดับ') ||
+      trimmed.startsWith('เลขที่')
     ) {
       continue;
     }
 
     let parts: string[];
     if (trimmed.includes('\t')) {
-      parts = trimmed.split('\t').map(p => p.trim()).filter(Boolean);
+      parts = trimmed.split('\t').map(p => p.replace(/^["']|["']$/g, '').trim()).filter(Boolean);
     } else if (trimmed.includes(',')) {
-      parts = trimmed.split(',').map(p => p.trim()).filter(Boolean);
+      parts = trimmed.split(',').map(p => p.replace(/^["']|["']$/g, '').trim()).filter(Boolean);
     } else {
-      parts = trimmed.split(/\s+/).map(p => p.trim()).filter(Boolean);
+      parts = trimmed.split(/\s+/).map(p => p.replace(/^["']|["']$/g, '').trim()).filter(Boolean);
     }
 
-    if (parts.length < 2) continue;
+    if (parts.length === 0) continue;
 
     let code = '';
     let title = 'ด.ช.';
+    let gender: 'male' | 'female' = 'male';
     let firstName = '';
     let lastName = '';
     let nickname = '';
     let classLevel = defaultClassLevel;
     let room = defaultRoom;
 
-    let startIndex = 0;
-    if (
-      (/^[0-9]+$/.test(parts[0]) ||
-        (/^[A-Za-z0-9-_]+$/.test(parts[0]) && parts[0].length <= 6)) &&
-      !titles.includes(parts[0])
-    ) {
-      code = parts[0];
-      startIndex = 1;
+    const nameTokens: string[] = [];
+    let foundTitle = false;
+    let foundClass = false;
+    let foundNumeric = false;
+
+    for (let i = 0; i < parts.length; i++) {
+      let token = parts[i];
+
+      // 1. Check if token is a Class Level (e.g. "ป.1", "ป.1/1", "ม.3/2", "อ.2")
+      if (/^(ป|ม|อ|อนุบาล|ประถม|มัธยม)\.?\s*([1-6])(\/[0-9]+)?$/i.test(token)) {
+        classLevel = token.replace(/\s+/g, '');
+        foundClass = true;
+        continue;
+      }
+
+      // 2. Check if token is a Room token (e.g. "ห้อง 101", "ห้อง1", "Room 1")
+      if (token.startsWith('ห้อง') || token.startsWith('Room')) {
+        room = token;
+        continue;
+      }
+
+      // 3. Check if token is Title or starts with Title (e.g. "เด็กชาย", "เด็กหญิง")
+      if (!foundTitle) {
+        let matchedTitleKey: string | null = null;
+        for (const k of titleKeys) {
+          if (token === k) {
+            matchedTitleKey = k;
+            token = '';
+            break;
+          } else if (token.startsWith(k)) {
+            matchedTitleKey = k;
+            token = token.slice(k.length).trim();
+            break;
+          }
+        }
+        if (matchedTitleKey) {
+          title = TITLE_MAP[matchedTitleKey].title;
+          gender = TITLE_MAP[matchedTitleKey].gender;
+          foundTitle = true;
+          if (!token) continue;
+        }
+      }
+
+      // 4. Check if token is numeric (student number / code / room number)
+      if (/^[0-9]+$/.test(token)) {
+        if (!foundNumeric && !code) {
+          code = token.padStart(3, '0');
+          foundNumeric = true;
+          // If we already saw "ป.1" and this token is e.g. "1" or "2", make classLevel "ป.1/1"
+          if (foundClass && !classLevel.includes('/') && token.length <= 2) {
+            classLevel = `${classLevel}/${token}`;
+          }
+          continue;
+        } else if (token.length === 3 || token.length === 4) {
+          room = `ห้อง ${token}`;
+          continue;
+        }
+      }
+
+      // 5. Remaining tokens are names / nicknames
+      if (token.includes(' ')) {
+        nameTokens.push(...token.split(/\s+/).filter(Boolean));
+      } else if (token) {
+        nameTokens.push(token);
+      }
+    }
+
+    if (nameTokens.length === 0) continue;
+    firstName = nameTokens[0] || '';
+    lastName = nameTokens[1] || '';
+    if (nameTokens.length >= 3) {
+      nickname = nameTokens[2];
     } else {
+      nickname = 'น้อง' + firstName;
+    }
+
+    if (!code) {
       code = (existingCount + idxNumber).toString().padStart(3, '0');
     }
 
-    if (startIndex >= parts.length) continue;
-
-    if (titles.includes(parts[startIndex])) {
-      title = parts[startIndex];
-      if (title === 'ด.ช') title = 'ด.ช.';
-      if (title === 'ด.ญ') title = 'ด.ญ.';
-      if (title === 'น.ส') title = 'น.ส.';
-      startIndex++;
-    } else {
-      for (const t of titles) {
-        if (parts[startIndex].startsWith(t)) {
-          title = t;
-          parts[startIndex] = parts[startIndex].slice(t.length).trim();
-          break;
-        }
-      }
-    }
-
-    firstName = parts[startIndex] || '';
-    lastName = parts[startIndex + 1] || '';
-    nickname = parts[startIndex + 2] || '';
-
-    for (let i = startIndex + 3; i < parts.length; i++) {
-      const token = parts[i];
-      if (token.startsWith('ป.') || token.startsWith('ม.') || token.includes('/')) {
-        classLevel = token;
-      } else if (token.startsWith('ห้อง') || token.startsWith('Room') || /^[0-9]{3}$/.test(token)) {
-        room = token.startsWith('ห้อง') ? token : `ห้อง ${token}`;
-      } else if (!nickname) {
-        nickname = token;
-      }
-    }
-
-    if (!firstName) continue;
-
-    const gender = title === 'ด.ญ.' || title === 'นางสาว' || title === 'น.ส.' ? 'female' : 'male';
     const avatar =
       gender === 'female'
         ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuAL5t_MWvFniyYyAgPM7lL7RtqInuWSeTJZVqgChQ5YaPMsKWxH2Az8gcdATP51fZgMNvD4Tzx-ynYWFP0D2u4HSCqiUn_dAgRmSFusmq56qf39j7fYZHvuYVzWZG0f-LmMx4UYLky8Wm6NGFfLRej_sOHb-oaN0_gCMJbJjQOUTU6P6YbUuM7H6cGeHF7CEONozlIeC-kTjGEW1dLI2G6jVMVSOzpV69HLyP4DOO-sXxrgByy-ZpvH'
@@ -111,7 +166,7 @@ function parseStudentLines(
       title,
       firstName,
       lastName,
-      nickname: nickname || 'น้อง' + firstName,
+      nickname,
       gender,
       classLevel,
       room,
@@ -154,11 +209,11 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
   };
 
   const handleLoadSample = () => {
-    const sample = `101\tด.ช.\tก้องเกียรติ\tยอดเยี่ยม\tก้อง\tป.1/1\tห้อง 101
-102\tด.ญ.\tนลินทิพย์\tสดใส\tน้ำหนึ่ง\tป.1/1\tห้อง 101
-103\tด.ช.\tธนกร\tตั้งใจเรียน\tกร\tป.1/1\tห้อง 101
-104\tด.ญ.\tปวิตรา\tรักษ์ดี\tปาล์ม\tป.1/1\tห้อง 101
-105\tด.ช.\tสิรวิชญ์\tฉลาดคิด\tวิน\tป.1/1\tห้อง 101`;
+    const sample = `ป.1	1	เด็กชาย	จักรกรี	สุริยะ
+ป.1	2	เด็กชาย	เจษฎา	แวงวรรณ
+ป.1	3	เด็กชาย	สุทธิพงษ์	มาคา
+ป.1	4	เด็กหญิง	นลินทิพย์	สดใส
+ป.1	5	เด็กหญิง	ปวิตรา	รักษ์ดี`;
     setBatchText(sample);
     const parsed = parseStudentLines(sample, defaultClassLevel, defaultRoom, students.length);
     setParsedStudents(parsed);
@@ -167,16 +222,23 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = event => {
-      const content = event.target?.result as string;
-      if (content) {
-        setBatchText(content);
-        const parsed = parseStudentLines(content, defaultClassLevel, defaultRoom, students.length);
-        setParsedStudents(parsed);
-      }
+
+    const readWithEncoding = (encoding: string, fallback?: string) => {
+      const reader = new FileReader();
+      reader.onload = event => {
+        const content = event.target?.result as string;
+        if (content && content.includes('') && fallback) {
+          readWithEncoding(fallback);
+        } else if (content) {
+          setBatchText(content);
+          const parsed = parseStudentLines(content, defaultClassLevel, defaultRoom, students.length);
+          setParsedStudents(parsed);
+        }
+      };
+      reader.readAsText(file, encoding);
     };
-    reader.readAsText(file, 'utf-8');
+
+    readWithEncoding('utf-8', 'windows-874');
   };
 
   const handleRemoveParsedRow = (index: number) => {
@@ -625,15 +687,12 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
             {/* Instruction Banner */}
             <div className="p-4 rounded-2xl bg-[#ebf7f0] border border-[#93d5a7] text-xs text-[#00210f] space-y-2">
               <div className="font-extrabold flex items-center gap-1.5 text-sm text-[#0a522f]">
-                <span className="material-symbols-outlined text-base">lightbulb</span>
-                <span>วิธีใช้งานง่ายที่สุด: ก๊อปปี้ตารางจาก Excel หรือ Google Sheets มาวางได้เลย!</span>
+                <span className="material-symbols-outlined text-base">auto_awesome</span>
+                <span>ระบบ AI วิเคราะห์ตาราง Excel / CSV ให้อัตโนมัติ (ไม่ต้องเรียงคอลัมน์ตายตัว)!</span>
               </div>
               <p className="leading-relaxed">
-                รองรับการคั่นด้วยแถบ (Tab), เครื่องหมายจุลภาค (,), หรือช่องว่าง แนะนำเรียงคอลัมน์: <br />
-                <span className="font-bold text-[#0a522f]">
-                  รหัส | คำนำหน้า | ชื่อ | นามสกุล | ชื่อเล่น | ชั้นเรียน | ห้อง
-                </span> <br />
-                (หากไม่มีรหัส หรือชั้นเรียน ระบบจะรันลำดับต่อจากเดิม และใช้ค่าเริ่มต้นด้านล่างให้อัตโนมัติค่ะ)
+                ไม่ว่าจะก๊อปปี้จาก Excel แบบในภาพ (เช่น <span className="font-bold text-[#0a522f]">ป.1 | 1 | เด็กชาย | จักรกรี | สุริยะ</span>) หรืออัปโหลดไฟล์ <span className="font-bold text-[#0a522f]">.csv / .xlsx</span> <br />
+                ระบบสามารถแยกแยะ <span className="font-bold underline">คำนำหน้า</span> (เด็กชาย, เด็กหญิง, ด.ช., ด.ญ.), <span className="font-bold underline">ชื่อจริง</span>, <span className="font-bold underline">นามสกุล</span>, และ <span className="font-bold underline">ชั้นเรียน</span> ให้อัตโนมัติค่ะ!
               </p>
             </div>
 
@@ -674,16 +733,17 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
                   type="button"
                   onClick={handleLoadSample}
                   className="w-full py-2 bg-[#fff9e6] hover:bg-[#ffeec2] text-[#996300] border border-[#fce39e] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 chibi-button transition-all"
+                  title="คลิกเพื่อโหลดตัวอย่างตามภาพ Excel"
                 >
                   <span className="material-symbols-outlined text-sm">magic_button</span>
-                  <span>ลองใส่ตัวอย่าง 5 คน</span>
+                  <span>ตัวอย่างแบบในภาพ Excel</span>
                 </button>
               </div>
 
               <div>
                 <label className="w-full py-2 bg-[#e2e8f8] hover:bg-[#d1dcfa] text-[#306385] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer chibi-button transition-all">
                   <span className="material-symbols-outlined text-sm">upload_file</span>
-                  <span>อัปโหลดไฟล์ CSV</span>
+                  <span>อัปโหลดไฟล์ .CSV</span>
                   <input
                     type="file"
                     accept=".csv,.txt,.tsv"
@@ -697,13 +757,13 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
             {/* Textarea for typing / pasting */}
             <div>
               <label className="block text-xs font-bold text-[#151c27] mb-1">
-                วางรายชื่อหรือตารางตรงนี้ (Copy & Paste):
+                วางรายชื่อหรือตารางตรงนี้ (Copy & Paste จาก Excel / Google Sheets):
               </label>
               <textarea
                 value={batchText}
                 onChange={e => handleTextChange(e.target.value)}
                 rows={5}
-                placeholder="ตัวอย่าง:&#10;101  ด.ช.  สมชาย  ใจดี  ต้น  ป.1/1&#10;102  ด.ญ.  สมหญิง  น่ารัก  มิ้นท์  ป.1/1"
+                placeholder="ตัวอย่างแบบในภาพ Excel:&#10;ป.1	1	เด็กชาย	จักรกรี	สุริยะ&#10;ป.1	2	เด็กชาย	เจษฎา	แวงวรรณ&#10;ป.1	3	เด็กหญิง	นลินทิพย์	สดใส"
                 className="w-full p-3 bg-[#f0f3ff] rounded-2xl border border-[#dce2f3] focus:border-[#306385] focus:outline-none text-xs font-mono"
               />
             </div>

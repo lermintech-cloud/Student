@@ -57,3 +57,18 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #71787e;
 }
+
+@keyframes slideDown {
+  from {
+    transform: translate(-50%, -30px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -18,7 +18,7 @@ interface SettingsTabProps {
   onDeleteSubject: (subjectId: string) => void;
   gasConfig: AppScriptConfig;
   setActiveTab: (tab: ActiveTab) => void;
-  onResetData: () => void;
+  onResetData?: () => void;
   onClearAllData: () => void;
   fullDb: {
     students: Student[];
@@ -810,21 +810,19 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Reset to Sample */}
-              <div className="p-5 rounded-2xl bg-[#fff9fa] border border-[#fdbec9] space-y-3">
-                <div className="font-bold text-sm text-[#81515a] flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-base">restart_alt</span>
-                  <span>รีเซ็ตกลับไปใช้ข้อมูลตัวอย่าง (Sample Data)</span>
+              {/* Auto Save & Security Info */}
+              <div className="p-5 rounded-2xl bg-[#ebf7f0] border border-[#93d5a7] space-y-3">
+                <div className="font-bold text-sm text-[#0a522f] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-base">verified_user</span>
+                  <span>ระบบบันทึกข้อมูลอัตโนมัติ (Auto-Save Active)</span>
                 </div>
-                <p className="text-xs text-[#41474d] leading-relaxed">
-                  กลับไปใช้ข้อมูลตัวอย่างเริ่มต้น (เช่น ด.ช.โอลลี่, ด.ญ.มินนี่ และงานตัวอย่าง 3 วิชางาน)
+                <p className="text-xs text-[#00210f] leading-relaxed">
+                  ข้อมูลการให้คะแนนและรายชื่อนักเรียนจะถูกบันทึกไว้ในเบราว์เซอร์อัตโนมัติทุกครั้งที่มีการแก้ไข สามารถส่งออกสำรองเป็นไฟล์ JSON หรือ Excel ได้ทุกเมื่อค่ะ
                 </p>
-                <button
-                  onClick={onResetData}
-                  className="w-full bg-[#ffd9df] text-[#330f19] hover:bg-[#f4b6c1] py-2.5 rounded-xl text-xs font-bold transition-colors"
-                >
-                  รีเซ็ตเป็นข้อมูลตัวอย่าง
-                </button>
+                <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#0a522f] pt-1">
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  <span>ปลอดภัย ข้อมูลไม่สูญหาย</span>
+                </div>
               </div>
 
               {/* Clear All Students & Grades */}

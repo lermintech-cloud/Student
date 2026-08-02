@@ -8,7 +8,7 @@ interface SidebarProps {
   onOpenNewAssignment: () => void;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
-  onResetData: () => void;
+  onResetData?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -133,16 +133,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>มอบหมายงานใหม่</span>
           </button>
 
-          <div className="flex items-center justify-between text-xs text-[#41474d] pt-1">
-            <span>ข้อมูลบันทึกใน SQLite/JSON</span>
-            <button
-              onClick={onResetData}
-              className="text-[#81515a] hover:underline hover:text-[#ba1a1a] flex items-center gap-1"
-              title="รีเซ็ตกลับไปใช้ข้อมูลตัวอย่างเริ่มต้น"
-            >
-              <span className="material-symbols-outlined text-sm">restart_alt</span>
-              <span>รีเซ็ตตัวอย่าง</span>
-            </button>
+          <div className="flex items-center justify-center pt-1">
+            <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#0a522f] bg-[#ebf7f0] border border-[#93d5a7] px-3.5 py-1.5 rounded-full w-full justify-center shadow-xs">
+              <span className="material-symbols-outlined text-base">cloud_done</span>
+              <span>ระบบบันทึกข้อมูลอัตโนมัติ</span>
+            </div>
           </div>
         </div>
       </aside>
