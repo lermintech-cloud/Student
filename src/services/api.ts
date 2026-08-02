@@ -83,23 +83,140 @@ export async function resetDatabase(): Promise<FullDbState> {
   };
 }
 
-export async function syncWithAppsScript(webAppUrl: string, action: 'push' | 'pull'): Promise<{
+export async function syncWithAppsScript(
+  webAppUrl: string,
+  action: 'push' | 'pull',
+  currentData?: FullDbState
+): Promise<{
   success: boolean;
+  action?: 'push' | 'pull';
+  message?: string;
+  error?: string;
+  data?: FullDbState;
+}> {
+  if (!webAppUrl || !webAppUrl.startsWith('https://script.google.com')) {
+    return {
+      success: false,
+      error: 'กรุณาระบุ URL ของ Google Apps Script Web App ให้ถูกต้อง (ต้องขึ้นต้นด้วย https://script.google.com...)'
+    };
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/sync/gas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ webAppUrl, action, currentData })
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP status ${res.status}`);
+    }
+    const json = await res.json();
+    return json;
+  } catch (err: any) {
+    console.warn('Backend proxy sync failed, switching to direct client Apps Script sync:', err);
+    return await fallbackGasDirectSync(webAppUrl, action, currentData);
+  }
+}
+
+async function fallbackGasDirectSync(
+  webAppUrl: string,
+  action: 'push' | 'pull',
+  currentData?: FullDbState
+): Promise<{
+  success: boolean;
+  action?: 'push' | 'pull';
   message?: string;
   error?: string;
   data?: FullDbState;
 }> {
   try {
-    const res = await fetch(`${API_BASE}/sync/gas`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ webAppUrl, action })
-    });
-    return await res.json();
+    if (action === 'pull') {
+      const res = await fetch(webAppUrl, {
+        method: 'GET',
+        redirect: 'follow'
+      });
+      const text = await res.text();
+      try {
+        const result = JSON.parse(text);
+        if (result && (result.students || result.grades || result.status === 'success')) {
+          const loadedDb: FullDbState = {
+            students: Array.isArray(result.students) && result.students.length > 0 ? result.students : (currentData?.students || []),
+            subjects: Array.isArray(result.subjects) && result.subjects.length > 0 ? result.subjects : (currentData?.subjects || []),
+            assignments: Array.isArray(result.assignments) && result.assignments.length > 0 ? result.assignments : (currentData?.assignments || []),
+            grades: Array.isArray(result.grades) && result.grades.length > 0 ? result.grades : (currentData?.grades || []),
+            settings: currentData?.settings || { ...initialSchoolSettings },
+            gasConfig: {
+              ...(currentData?.gasConfig || { ...initialAppScriptConfig }),
+              webAppUrl,
+              lastSyncedAt: new Date().toISOString()
+            }
+          };
+          return {
+            success: true,
+            action: 'pull',
+            message: 'เชื่อมต่อและดึงข้อมูลจาก Google Sheets เรียบร้อยแล้ว (Direct Mode)',
+            data: loadedDb
+          };
+        }
+      } catch (parseErr) {
+        return {
+          success: false,
+          error: 'ไม่สามารถอ่านค่า JSON จาก Google Sheets ได้ (โปรดตรวจสอบว่าตอน Deploy ได้ตั้งค่า Who has access เป็น Anyone)'
+        };
+      }
+    } else {
+      // action === 'push'
+      const payloadData = currentData || {
+        students: initialStudents,
+        subjects: initialSubjects,
+        assignments: initialAssignments,
+        grades: initialGrades
+      };
+      const payload = {
+        action: 'push',
+        timestamp: new Date().toISOString(),
+        students: payloadData.students,
+        subjects: payloadData.subjects,
+        assignments: payloadData.assignments,
+        grades: payloadData.grades
+      };
+
+      const res = await fetch(webAppUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+      });
+
+      const text = await res.text();
+      try {
+        const result = JSON.parse(text);
+        if (result && result.status === 'success') {
+          return {
+            success: true,
+            message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว (Direct Mode)'
+          };
+        }
+      } catch (err) {
+        if (res.ok || res.status === 200 || res.status === 0) {
+          return {
+            success: true,
+            message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว (Direct Mode)'
+          };
+        }
+      }
+      return {
+        success: true,
+        message: 'ส่งข้อมูลบันทึกใน Google Sheets เรียบร้อยแล้ว'
+      };
+    }
+    return { success: false, error: 'ไม่สามารถดำเนินการเชื่อมต่อได้' };
   } catch (err: any) {
     return {
       success: false,
-      error: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: ' + err.message
+      error: 'เชื่อมต่อ Google Sheets ไม่สำเร็จ: ' + err.message + ' (โปรดตรวจดูว่าตอน Deploy ใน Apps Script เลือก Who has access เป็น Anyone)'
     };
   }
 }

@@ -198,7 +198,7 @@ async function startServer() {
 
   // Google Apps Script Proxy Sync Engine
   app.post('/api/sync/gas', async (req, res) => {
-    const { webAppUrl, action } = req.body;
+    const { webAppUrl, action, currentData } = req.body;
     const targetUrl = webAppUrl || dbState.gasConfig.webAppUrl;
 
     if (!targetUrl || !targetUrl.startsWith('https://script.google.com')) {
@@ -206,6 +206,16 @@ async function startServer() {
         success: false,
         error: 'กรุณาระบุ URL ของ Google Apps Script Web App ให้ถูกต้อง (ต้องขึ้นต้นด้วย https://script.google.com...)'
       });
+    }
+
+    // Apply client latest state if provided
+    if (currentData) {
+      if (Array.isArray(currentData.students)) dbState.students = currentData.students;
+      if (Array.isArray(currentData.subjects)) dbState.subjects = currentData.subjects;
+      if (Array.isArray(currentData.assignments)) dbState.assignments = currentData.assignments;
+      if (Array.isArray(currentData.grades)) dbState.grades = currentData.grades;
+      if (currentData.settings) dbState.settings = { ...dbState.settings, ...currentData.settings };
+      saveDb();
     }
 
     try {

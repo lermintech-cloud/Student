@@ -7,12 +7,14 @@ interface AppScriptSyncTabProps {
   gasConfig: AppScriptConfig;
   onUpdateGasConfig: (config: Partial<AppScriptConfig>) => void;
   onDataPulledFromGas: (db: FullDbState) => void;
+  fullDb?: FullDbState;
 }
 
 export const AppScriptSyncTab: React.FC<AppScriptSyncTabProps> = ({
   gasConfig,
   onUpdateGasConfig,
-  onDataPulledFromGas
+  onDataPulledFromGas,
+  fullDb
 }) => {
   const [urlInput, setUrlInput] = useState(gasConfig.webAppUrl || '');
   const [syncStatus, setSyncStatus] = useState<'idle' | 'pushing' | 'pulling' | 'success' | 'error'>('idle');
@@ -24,7 +26,28 @@ export const AppScriptSyncTab: React.FC<AppScriptSyncTabProps> = ({
     e.preventDefault();
     onUpdateGasConfig({ webAppUrl: urlInput.trim() });
     setSyncStatus('success');
-    setStatusMessage('บันทึก Web App URL เรียบร้อยแล้ว');
+    setStatusMessage('บันทึก Web App URL ในระบบเรียบร้อยแล้ว');
+  };
+
+  const handleTestAndConnect = async () => {
+    const targetUrl = urlInput.trim() || gasConfig.webAppUrl;
+    if (!targetUrl) {
+      setSyncStatus('error');
+      setStatusMessage('กรุณาวาง Web App URL ก่อนกดทดสอบเชื่อมต่อ');
+      return;
+    }
+    onUpdateGasConfig({ webAppUrl: targetUrl });
+    setSyncStatus('pushing');
+    setStatusMessage('🔄 กำลังเชื่อมต่อและสร้าง 4 ตาราง (Students, Subjects, Assignments, Grades) ใน Google Sheets...');
+    const res = await syncWithAppsScript(targetUrl, 'push', fullDb);
+    if (res.success) {
+      setSyncStatus('success');
+      setStatusMessage('🎉 เชื่อมต่อสำเร็จ! สร้างตารางทั้ง 4 และส่งข้อมูลนักเรียนขึ้น Google Sheets เรียบร้อยแล้ว!');
+      onUpdateGasConfig({ lastSyncedAt: new Date().toISOString() });
+    } else {
+      setSyncStatus('error');
+      setStatusMessage(res.error || 'เชื่อมต่อไม่สำเร็จ โปรดตรวจสอบสิทธิ์ Who has access ให้เป็น "Anyone (ทุกคน)"');
+    }
   };
 
   const handlePushToSheets = async () => {
@@ -36,7 +59,7 @@ export const AppScriptSyncTab: React.FC<AppScriptSyncTabProps> = ({
     }
     setSyncStatus('pushing');
     setStatusMessage('กำลังส่งข้อมูลขึ้น Google Sheets... (กรุณารอสักครู่)');
-    const res = await syncWithAppsScript(targetUrl, 'push');
+    const res = await syncWithAppsScript(targetUrl, 'push', fullDb);
     if (res.success) {
       setSyncStatus('success');
       setStatusMessage('🎉 ส่งข้อมูลบันทึกใน Google Sheets (4 ชีต) เรียบร้อยแล้ว!');
@@ -56,7 +79,7 @@ export const AppScriptSyncTab: React.FC<AppScriptSyncTabProps> = ({
     }
     setSyncStatus('pulling');
     setStatusMessage('กำลังดึงข้อมูลจาก Google Sheets...');
-    const res = await syncWithAppsScript(targetUrl, 'pull');
+    const res = await syncWithAppsScript(targetUrl, 'pull', fullDb);
     if (res.success && res.data) {
       setSyncStatus('success');
       setStatusMessage('🎉 ดึงข้อมูลล่าสุดจาก Google Sheets และอัปเดตตารางเรียบร้อยแล้ว');
@@ -148,16 +171,42 @@ export const AppScriptSyncTab: React.FC<AppScriptSyncTabProps> = ({
                   value={urlInput}
                   onChange={e => setUrlInput(e.target.value)}
                   placeholder="https://script.google.com/macros/s/xxxxxx.../exec"
-                  className="w-full pl-11 pr-4 py-3 bg-[#f0f3ff] rounded-full border border-[#dce2f3] focus:border-[#306385] focus:outline-none focus:bg-white text-sm font-bold transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-[#f0f3ff] rounded-full border border-[#dce2f3] focus:border-[#306385] focus:outline-none focus:bg-white text-sm font-bold transition-all"
                 />
               </div>
-              <button
-                type="submit"
-                className="px-8 py-3 rounded-full bg-[#306385] text-white font-bold text-sm shadow-sm chibi-button"
-              >
-                บันทึก URL
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={handleTestAndConnect}
+                  disabled={syncStatus === 'pushing'}
+                  className="px-6 py-3.5 rounded-full bg-[#306385] hover:bg-[#254d68] text-white font-extrabold text-sm shadow-md chibi-button flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-base">bolt</span>
+                  <span>{syncStatus === 'pushing' ? 'กำลังเชื่อมต่อ...' : 'บันทึกและเชื่อมต่อทันที'}</span>
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-3.5 rounded-full bg-[#f0f3ff] hover:bg-[#dce2f3] text-[#306385] font-bold text-sm chibi-button"
+                >
+                  บันทึก URL
+                </button>
+              </div>
             </form>
+
+            <div className="mt-5 p-4 rounded-2xl bg-[#f0f9f4] border border-[#93d5a7] text-xs text-[#0a522f] space-y-1.5">
+              <div className="font-extrabold flex items-center gap-1.5 text-sm">
+                <span className="material-symbols-outlined text-base text-[#2a6a45]">tips_and_updates</span>
+                <span>ทำไมถึงรู้สึกว่ายังไม่ได้เชื่อมต่อ? ตรวจเช็ค 2 จุดสำคัญ:</span>
+              </div>
+              <ul className="list-disc pl-5 space-y-1 text-[#2a6a45]">
+                <li>
+                  <strong>สิทธิ์การเข้าถึง (Who has access):</strong> ตอนกด Deploy ใน Apps Script ต้องเลือกเป็น <span className="underline font-bold">"Anyone (ทุกคน)"</span> หากเลือกเป็น Only myself ระบบจะเชื่อมต่อไม่ได้
+                </li>
+                <li>
+                  <strong>กดปุ่มเชื่อมต่อ:</strong> เมื่อวาง URL แล้ว ให้กดปุ่ม <span className="font-bold text-[#306385]">"⚡ บันทึกและเชื่อมต่อทันที"</span> ด้านบน ระบบจะสร้าง 4 ชีต (Students, Subjects, Assignments, Grades) และส่งรายชื่อนักเรียนขึ้น Google Sheets ทันที
+                </li>
+              </ul>
+            </div>
 
             {gasConfig.lastSyncedAt && (
               <div className="mt-4 flex items-center gap-2 text-xs text-[#2a6a45] font-semibold">
