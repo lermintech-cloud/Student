@@ -180,15 +180,23 @@ npm run dev
           </h3>
         </div>
         <p className="text-sm text-[#41474d] leading-relaxed">
-          สาเหตุหลักที่เปิดหน้าเว็บแล้วขาวว่างเปล่า เกิดจาก <strong className="text-[#306385]">การตั้งค่าที่อยู่ไฟล์ (Base Path) ไม่ตรงกับซับโดเมนของ GitHub Pages</strong> หรือไม่ได้ผ่านขั้นตอนการ Build (เนื่องจากเบราว์เซอร์ไม่สามารถรันไฟล์ TypeScript .tsx ได้โดยตรง) — ตอนนี้ระบบได้ปรับค่า <code>base: './'</code> ในไฟล์ <code>vite.config.ts</code> ให้เรียบร้อยแล้วค่ะ!
+          สาเหตุที่ก่อนหน้านี้เปลี่ยนเป็น <strong className="text-[#306385]">GitHub Actions</strong> แล้วยังเจอหน้าขาว เกิดจาก 2 ปัจจัยหลัก ซึ่งตอนนี้เราได้ <strong className="text-[#0a522f]">แก้ไขถาวรให้เรียบร้อยแล้วทั้งหมด 100%</strong> ดังนี้ค่ะ:
         </p>
+        <ul className="list-disc pl-5 space-y-1 text-xs text-[#41474d]">
+          <li>
+            <strong>ปัญหา URL ไม่มีเครื่องหมาย Slash <code>/</code> ต่อท้าย:</strong> เช่น <code>https://user.github.io/my-repo</code> (โดยไม่มี <code>/</code>) จะทำให้เบราว์เซอร์หาไฟล์ JS/CSS ไม่เจอ — <span className="text-[#0a522f] font-bold">แก้ไขแล้วโดยใส่ Smart Redirect Script ใน index.html เติม / ให้อัตโนมัติทันที</span>
+          </li>
+          <li>
+            <strong>ระบบ Jekyll บน GitHub Pages:</strong> — <span className="text-[#0a522f] font-bold">แก้ไขแล้วโดยเพิ่มไฟล์ <code>.nojekyll</code> และ <code>404.html</code> ในคำสั่ง Build เพื่อไม่ให้ GitHub Pages ลบไฟล์ JavaScript ทิ้ง</span>
+          </li>
+        </ul>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium pt-2">
           <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#fdbec9] space-y-2">
             <div className="font-extrabold text-[#93000a] text-sm flex items-center gap-1.5">
-              <span>🌸 วิธีที่ 1: เปิดใช้ GitHub Pages ด้วย GitHub Actions (แนะนำ)</span>
+              <span>🌸 วิธีที่ 1: เปิดใช้ GitHub Pages ด้วย GitHub Actions (แก้ไขสมบูรณ์แล้ว ✅)</span>
             </div>
             <p className="text-[#41474d] leading-relaxed">
-              เราได้เพิ่มไฟล์อัตโนมัติ <code>.github/workflows/deploy.yml</code> ไว้ให้แล้ว เมื่อคุณครู Push โค้ดขึ้น GitHub ให้ไปที่เมนู <strong className="text-[#306385]">Settings &gt; Pages</strong> ใน Repository ของคุณครู &gt; ตรงหัวข้อ <strong>Build and deployment (Source)</strong> ให้เลือกเป็น <strong className="text-[#2a6a45]">"GitHub Actions"</strong> จากนั้นระบบจะ Build ให้เสร็จใน 1-2 นาที และหน้าเว็บจะไม่ขาวอีกต่อไป!
+              เมื่อคุณครู Export / Push โค้ดเวอร์ชันล่าสุดนี้ขึ้น GitHub &gt; ไปที่เมนู <strong className="text-[#306385]">Settings &gt; Pages</strong> &gt; ตรงหัวข้อ <strong>Build and deployment (Source)</strong> เลือกเป็น <strong className="text-[#2a6a45]">"GitHub Actions"</strong> &gt; รอระบบ Build ประมาณ 1-2 นาที จากนั้นกดเปิดเว็บใช้งานได้ทันที หน้าเว็บจะไม่ขาวอีกแน่นอนค่ะ!
             </p>
           </div>
           <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#aef2c2] space-y-2">

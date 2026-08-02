@@ -8,6 +8,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kodchasan:wght@400;500;600;700&family=Mali:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <!-- ป้องกันปัญหาหน้าขาวบน GitHub Pages กรณีเปิด URL ที่ไม่มี Slash ปิดท้าย -->
+    <script>
+      (function() {
+        var path = window.location.pathname;
+        if (!path.endsWith('/') && !path.includes('.')) {
+          window.location.replace(window.location.href + '/');
+        }
+      })();
+    </script>
   </head>
   <body class="bg-[#f9f9ff] text-[#151c27] antialiased selection:bg-[#a7d8ff] selection:text-[#001e2f]">
     <div id="root"></div>
