@@ -20,6 +20,7 @@ import {
   fetchDatabase,
   saveDatabase,
   resetDatabase,
+  syncWithAppsScript,
   FullDbState
 } from './services/api.js';
 
@@ -77,7 +78,23 @@ export default function App() {
         }
         if (data.grades) setGrades(data.grades);
         if (data.settings) setSettings(data.settings);
-        if (data.gasConfig) setGasConfig(data.gasConfig);
+        if (data.gasConfig) {
+          setGasConfig(data.gasConfig);
+          // Auto-pull from Google Sheets if autoSync is ON and webAppUrl is set (Multi-Device Sync)
+          if (data.gasConfig.webAppUrl && data.gasConfig.autoSync) {
+            syncWithAppsScript(data.gasConfig.webAppUrl, 'pull', data)
+              .then(res => {
+                if (res.success && res.data) {
+                  if (res.data.students) setStudents(res.data.students);
+                  if (res.data.subjects) setSubjects(res.data.subjects);
+                  if (res.data.assignments) setAssignments(res.data.assignments);
+                  if (res.data.grades) setGrades(res.data.grades);
+                  showToast('☁️ โหลดและซิงค์ข้อมูลล่าสุดจาก Google Sheets (ใช้งานข้ามอุปกรณ์) เรียบร้อยแล้วค่ะ!', 'success');
+                }
+              })
+              .catch(err => console.warn('Auto-pull from Google Sheets failed:', err));
+          }
+        }
       }
     });
   }, []);
@@ -102,8 +119,38 @@ export default function App() {
       gasConfig: newGasConfig || gasConfig
     };
     saveDatabase(updatedDb);
-    if (toastText) {
-      showToast(toastText, toastType);
+
+    // Auto-sync to Google Sheets if configured and autoSync is enabled
+    const targetGas = updatedDb.gasConfig;
+    if (targetGas?.webAppUrl && targetGas?.autoSync) {
+      syncWithAppsScript(targetGas.webAppUrl, 'push', updatedDb)
+        .then(res => {
+          if (res.success) {
+            setGasConfig(prev => ({
+              ...prev,
+              lastSyncedAt: new Date().toISOString()
+            }));
+            if (toastText) {
+              showToast(`${toastText} (☁️ ซิงค์ Google Sheets อัตโนมัติแล้ว)`, toastType);
+            } else {
+              showToast('☁️ บันทึกและซิงค์ข้อมูลขึ้น Google Sheets อัตโนมัติแล้วค่ะ', 'success');
+            }
+          } else {
+            if (toastText) {
+              showToast(`${toastText} (⚠️ ยังไม่ได้ซิงค์ Sheet: ${res.error || 'ตรวจสอบ URL'})`, 'warning');
+            }
+          }
+        })
+        .catch(err => {
+          console.warn('Auto-sync to Google Sheets failed:', err);
+          if (toastText) {
+            showToast(toastText, toastType);
+          }
+        });
+    } else {
+      if (toastText) {
+        showToast(toastText, toastType);
+      }
     }
   };
 
@@ -478,6 +525,8 @@ export default function App() {
             onSaveStudent={handleSaveStudent}
             onDeleteStudent={handleDeleteStudent}
             onBatchAddStudents={handleBatchAddStudents}
+            gasConfig={gasConfig}
+            onOpenGasSync={() => setActiveTab('appScriptSync')}
           />
         )}
 

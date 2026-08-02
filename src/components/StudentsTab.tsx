@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Student, Assignment, GradeEntry } from '../types.js';
+import { Student, Assignment, GradeEntry, AppScriptConfig } from '../types.js';
 import { exportToCSV } from '../services/api.js';
 
 interface StudentsTabProps {
@@ -9,6 +9,8 @@ interface StudentsTabProps {
   onSaveStudent: (student: Partial<Student>) => void;
   onDeleteStudent: (id: string) => void;
   onBatchAddStudents?: (students: Partial<Student>[]) => void;
+  gasConfig?: AppScriptConfig;
+  onOpenGasSync?: () => void;
 }
 
 function parseStudentLines(
@@ -186,7 +188,9 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
   grades,
   onSaveStudent,
   onDeleteStudent,
-  onBatchAddStudents
+  onBatchAddStudents,
+  gasConfig,
+  onOpenGasSync
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('');
@@ -350,6 +354,51 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
             <span>+ เพิ่มนักเรียน</span>
           </button>
         </div>
+      </div>
+
+      {/* Multi-device & Google Sheets Auto-Sync Status Banner */}
+      <div className="w-full">
+        {gasConfig?.webAppUrl && gasConfig?.autoSync ? (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-[#ebf7f0] border border-[#93d5a7] text-[#00210f] text-xs font-medium shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-lg text-[#0a522f]">cloud_sync</span>
+              <div>
+                <span className="font-extrabold text-[#0a522f]">ซิงค์ข้อมูลกับ Google Sheets อัตโนมัติ (เปิดใช้งานหลายอุปกรณ์ได้)</span>
+                <p className="text-[#335544] mt-0.5">ทุกครั้งที่เพิ่มนักเรียนหรือให้คะแนน ระบบจะอัปเดตลงตาราง Google Sheets เพื่อให้มือถือ แท็บเล็ต และคอมพิวเตอร์เห็นข้อมูลตรงกันค่ะ</p>
+              </div>
+            </div>
+            {onOpenGasSync && (
+              <button
+                type="button"
+                onClick={onOpenGasSync}
+                className="shrink-0 font-bold text-[#0a522f] hover:underline flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl border border-[#93d5a7]"
+              >
+                <span>ตั้งค่า Sheet</span>
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-[#fff9e6] border border-[#fce39e] text-[#4d3a00] text-xs font-medium shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-lg text-[#996300]">devices</span>
+              <div>
+                <span className="font-extrabold text-[#996300]">ต้องการเปิดใช้งานพร้อมกันหลายอุปกรณ์ (มือถือ / แท็บเล็ต / โน้ตบุ๊ก)?</span>
+                <p className="text-[#664d00] mt-0.5">คุณครูสามารถเชื่อมต่อกับ Google Sheets ฟรี เพื่อให้รายชื่อนักเรียนและคะแนนซิงค์ถึงกันทุกอุปกรณ์อัตโนมัติค่ะ</p>
+              </div>
+            </div>
+            {onOpenGasSync && (
+              <button
+                type="button"
+                onClick={onOpenGasSync}
+                className="shrink-0 font-extrabold text-white bg-[#306385] hover:bg-[#234b65] px-4 py-2 rounded-xl transition-colors flex items-center gap-1 shadow-xs"
+              >
+                <span className="material-symbols-outlined text-sm">link</span>
+                <span>เชื่อมต่อ Google Sheets ฟรี</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Search & Filter Bar */}
