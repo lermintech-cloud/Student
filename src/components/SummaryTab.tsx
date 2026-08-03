@@ -3,16 +3,19 @@ import {
   Student,
   Subject,
   Assignment,
-  GradeEntry
+  GradeEntry,
+  SchoolSettings
 } from '../types.js';
 import { exportToCSV } from '../services/api.js';
 import { StudentAvatar } from './StudentAvatar.js';
+import { P5ReportModal } from './P5ReportModal.js';
 
 interface SummaryTabProps {
   students: Student[];
   subjects: Subject[];
   assignments: Assignment[];
   grades: GradeEntry[];
+  settings?: SchoolSettings;
   onOpenAiAssistant: () => void;
 }
 
@@ -21,12 +24,14 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
   subjects,
   assignments,
   grades,
+  settings,
   onOpenAiAssistant
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'low' | 'missing' | 'top'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubjectId, setSelectedSubjectId] = useState(subjects[0]?.id || '');
   const [selectedClass, setSelectedClass] = useState('ป.1/1');
+  const [isP5ModalOpen, setIsP5ModalOpen] = useState(false);
 
   // Calculate student totals & percentages & ranks
   const totalMaxScore = assignments.reduce((sum, a) => sum + a.maxScore, 0);
@@ -108,6 +113,13 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setIsP5ModalOpen(true)}
+            className="bg-[#ebf7f0] hover:bg-[#d4edd8] text-[#0a522f] border border-[#93d5a7] px-4 py-2.5 rounded-full text-sm font-bold chibi-button flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <span className="material-symbols-outlined text-base">print</span>
+            <span>พิมพ์ ปพ.5 / ใบแจ้งเกรด</span>
+          </button>
           <button
             onClick={() => exportToCSV(students, assignments, grades)}
             className="bg-[#e7f1f8] hover:bg-[#d5e6f3] text-[#1c4966] border border-[#b8d6eb] px-4 py-2.5 rounded-full text-sm font-bold chibi-button flex items-center gap-1.5 shadow-sm transition-all"
